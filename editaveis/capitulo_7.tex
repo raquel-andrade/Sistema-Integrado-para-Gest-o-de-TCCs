@@ -1,0 +1,48 @@
+\chapter[Descrição do organismo artificial Camphs1D05G1 no Vivado HLS C-level]{Descrição do organismo artificial Camphs1D05G1 no Vivado HLS C-level}
+
+
+
+Para fins de teste, e validação, sistema Camphs1D05G1 foi encapsulado em um Ip-core, para utilização em um sistema SoC FPGA. Os trabalhos foram realizados através da ferramenta Vivado High-Level Sinthesys C-level (HLS), disponível no vivado 2018.3 HLs Webpack, da fabricante Xilinx. Nos próximos tópicos, serão apresentados o código C do Ip-Core Camphs1D05G1, a explicação sobre o seu funcionamento, e o fluxo de trabalho necessário para a realização de todo o projeto, até à sua aplicação final. 
+
+\section{Uma breve descrição da ferramenta Vivado HLS C-level}
+
+A fabricante de chips Xilinxs oferece, como alternativa para o desenvolvimento de Ip-cores, a ferramenta Vivado HLS C-level. Através desta ferramenta é possível desenvolver um Ip-core a partir de um código C/C++, porém com alguns cuidados ou restrições em relação ao seu uso. As principais limitações estão listadas abaixo.
+
+\begin{itemize}
+  \item Não podemos trabalhar com alocação dinâmica de memória.
+  \item Não é permitido trabalhar com funções recursivas.
+  \item Não é permitida a utilização de funções de leitura e entrada de arquivos (I/O).
+  \item não podemos trabalhar com a biblioteca padrão para containers tais como vetores, mapas de busca otimizada, entre outros (STD).
+\end{itemize}
+
+Em contraste com estas limitações, temos alguns benefícios gerados pelo uso da ferramenta Vivado HLS C-level. Dentre os principais, podemos listar:
+
+\begin{itemize}
+  \item Maior produtividade para desenvolvedores de hardwares.
+  \item Disponibilidade de recursos otimizados para cálculos em pontos flutuantes, com 32-bits ou 64-bits.
+  \item Possibilidade de verificação em nível C/C++ e Co-simulação considerando a implementação RTL.
+  \item Possibilidade de se trabalhar com diretrizes, em código, capazes de configurar e aumentar a eficiência da síntese lógica.
+\end{itemize}
+
+O projeto de um Ip-core se inicia, no Vivado HLS C-level, com a codificação de um arquivo C/C++ que traga a função matemática em foco, incluindo a operação de parâmetros de entrada, que podem ser deste de endereços de memoria (ponteiros) até estruturas complexas de dados. As funções podem ser do tipo void (sem retorno de dados), ou de tipos padrões tais como char, short, int, float, doble, dentre outros. Uma vez definidas, tais funções podem ser testadas através de um segundo arquivo C/C++, descrito para operar como testador (Test Bench). A estrutura básica de um projeto no Vivado HLS está apresentada na figura \ref{fig:Vivado_HLS}.
+
+\begin{figure}
+	\centering
+	\label{Vivado_HLS.png}
+		\includegraphics[keepaspectratio=true,scale=0.7]{figuras/Vivado_HLS.png}
+	\caption{\label{fig:Vivado_HLS}Estrutura básica de um projeto gerado no Vivado HLS C-level.}
+\end{figure}
+
+Na figura \ref{fig:Vivado_HLS} é possível verificar que o Vivado HLS possui os arquivos organizados em uma árvore padrão, de maneira a separar a lógica de funcionamento do Ip-core da lógica de teste, que fica na aba Test Bench. A Aba denominada solution1 - neste nome é fornecido pelo usuário no início de um novo projeto - guarda todos os arquivos necessários para a sintetização do Ip-core, bem como as bibliotecas necessárias para a operação de interfaces de dados em nível C, tais como o AXI4-Lite e o AXI4-Stream.
+
+Após a codificação do Ip-core, e de seu arquivo de teste, o Vivado HLS C-level nos oferece alguns recursos para depuração da solução. Os principais recursos são: (1) a depuração em software, a partir da compilação e execução do código, no console da ferramenta e, a (2) co-simulação
+software/hardware, que sintetiza a solução em RTL, comparando-a com a solução descrita em software. Existem recursos mais avançados de depuração, tal como análise dos sinais de ondas, que pode nos oferecer uma visão mais concreta sobre o funcionamento do circuito sintetizado. 
+
+Neste projeto, a co-simulação foi praticada para testar o projeto do Ip-core Camphs1D05G1, e os resultados estão apresentados no capítulo seguinte. Os detalhes construtivos do Ip-core Camphs1D05G1 estão apresentados no tópico seguinte.
+
+Felizmente, a comunidade do Vivado HLS C-level é rica em exemplos e projetos, fato que possibilita o desenvolvimento dos mais diversificados projetos, envolvendo diferentes tipos de estruturas e interfaces de dados. Também existem tutorais bem estruturados para a correta utilização da linguagem C/C++, bem como de diretrizes que se façam convenientes para as sintetizações praticadas. Este trabalho não se aprofundará neste sentido, mantendo-se restrito resolução do problema considerado.
+
+
+Capitulo 1 - colocar contribuições deste trabalho
+Resumir para 5 capítulos, incluindo resultados
+(Metodologia)

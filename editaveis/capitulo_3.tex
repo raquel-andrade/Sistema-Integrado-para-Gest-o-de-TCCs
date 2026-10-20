@@ -1,0 +1,626 @@
+\chapter[Lean UX]{Lean UX}
+
+Neste capítulo serão apresentadas as etapas necessárias para o projeto de um sistema CA unidimensional, passando por detalhes construtivos até as implementações realizadas em circuito reconfigurável.
+
+\section{O Sistema CA Camphs1D}
+
+Em um primeiro momento, 3 padrões básicos de células autômatas foram projetados com base em observações realizadas sobre o fenômeno em estudo, tendo em vista a equação \ref{eqn25}. Juntos, os padrões projetados podem emular o comportamento esperado de toda a solução, incluindo os fenômenos de interação de ondas com obstáculos. Em seguida, será apresentado o resultado final da arquitetura projetada, através de um projeto RTL. A arquitetura Camphs1D foi finalizada com apenas 2 tipos distintos de células autômatas, ou seja, 2 componentes descritos em VHDL. 
+
+O sistema Camphs1D é composto por 3 células, ou padrões básicos de células: (1) células de dispersão, (2) células geradoras, e (3) células híbridas. Em acordo com a equação \ref{eqn25}, e tendo em vista a dinâmica esperada para o sistema CA, as seguintes regras foram estabelecidas:
+
+\begin{enumerate}
+	\item As quantidades vetoriais da onda são ``transmitidas'' através das células de dispersão, de maneira isolada, ao longo de cada direção de movimento $(x+,-x)$.
+	\item uma célula geradora não deve receber quantidades vetoriais de onda de sua vizinhança. Seu estado energético é forçado por um agente externo, presente no organismo artificial. Suas quantidades energéticas devem ser transmitidas em todas as direções, a cada instante de tempo. 
+	\item uma célula híbrida recebe quantidades de ondas de sua vizinhança de modo semelhante às células de dispersão. Porém, as mesmas são capazes de replicar as energias recebidas ao longo de uma direção para a outra, de maneira a se comportarem de forma semelhante a uma célula geradora.
+\end{enumerate}
+
+\begin{figure}[h]
+	\centering
+	\label{dca.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/dispersora.jpeg}
+	\caption{\label{fig:dca}Primeira versão da célula autômata de dispersão, utilizada na arquitetura Camphs1D.}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\label{geradora.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/geradora.jpeg}
+	\caption{\label{fig:gca}Primeira versão da célula autômata geradora, utilizada na arquitetura Camphs1D.}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\label{hca.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/hibrida.jpeg}
+	\caption{\label{fig:hca}Primeira versão da célula autômata híbrida, utilizada na arquitetura Camphs1D.}
+\end{figure}
+
+Com base nas regras apresentadas foi possível desenhar os três padrões de células autômatas. Os resultados podem ser apreciados nas figuras \ref{fig:dca}, \ref{fig:gca} e \ref{fig:hca}.
+
+\newpage
+
+É possível observar que a dinâmica das células autômatas apresentadas respondem de maneira idêntica às regras previamente estabelecidas. O próximo passo é a implementação em software do sistema CA em questão, visando a comparação com o modelo de referência adotado no capítulo 3, para aplicação de uma MGDO. 
+
+\subsection{Solução de software para sistema CA Camphs1D}
+
+O principal objetivo de um sistema CA é a simplicidade. Para tal, as células foram diretamente conectadas de maneira a formarem duas guias de ondas, cada uma para uma direção de movimento. Não foram necessários parâmetros de controle ou equações de movimento, apenas as células autômatas e os sinais de fonte.
+
+Outra simplificação considerada foi a divisão da simulação em 3 partes concatenadas. Na primeira parte, duas fontes sonoras são consideradas em um conjunto de 66 células autômatas, composto por 64 células de dispersão e 2 células geradoras - as demais células foram desabilitadas. Na segunda parte, 82 células autômatas foram utilizadas, tendo apenas 1 célula geradora no conjunto - uma das células geradoras interrompe o seu funcionamento se transformando em uma célula de dispersão. Na parte final, 187 células autômatas foram utilizadas (185 em funcionamento e duas desligadas), dentre as quais temos 3 células híbridas e o restante em células de dispersão. As células híbridas sempre estiveram presentes no sistema, porém desabilitadas até o início da terceira parte desta simulação. Após a implementação de todo o código (Camphs1D) foi possível realizar uma análise de consumo de memória. Os resultados se encontram na Tabela \ref{tab:memoria}.
+
+\begin{table}
+\centering
+\caption{\label{tab:memoria} Consumo de memória em bits das estratégias MGDO e CA. A sigla $I_{32}$ representa inteiros com 32 bits, $F_{32}$ representa pontos flutuantes em 32 bits, $N_J$ representa o número de nós ou juntas de dispersão e a sigla $N_s$ representa o número de passos temporais.}
+\begin{tabular}{ |p{3cm}|p{3cm}|p{3cm}|p{3cm}|  }
+ \hline
+Estratégia & Escalares & Vetores & Total \\
+ \hline
+ MGDO-FDTD   & $4 \times I_{16} + 8 \times F_{32}$ & $9 \times N_J + 3 \times N_s$ & 2483 bits \\
+ sistema CA  & $4 \times I_{16} + 8 \times F_{32}$ & $6 \times N_J$ & 1442 bits \\
+ \hline
+\end{tabular}
+\end{table}
+
+Na Tabela \ref{tab:memoria}, visando uma comparação mais justa, somente as variáveis essenciais, às duas estratégias, foram contabilizadas. O consumo em escalares é idêntico por estar relacionado com os parâmetros básicos da simulação, tais como os sinais de fonte e as geometrias envolvidas. As estratégias se diferem significativamente em relação aos vetores, pois os mesmos representam as equações envolvidas e seus coeficientes. 
+
+Ainda na Tabela \ref{tab:memoria}, as variáveis $I_{16}$ e $F_{32}$ representam o inteiro de 16 bits e o ponto flutuante de 32 bits, respectivamente. As variáveis $N_J$ e $N_s$ representam quantidades de pontos flutuantes - foram utilizados, nestas simulações, $N_J= 187$ e $N_s= 160$. Deste modo, percebe-se um menor consumo de bits para o sistema CA, pois o mesmo se utiliza de uma quantidade menor de vetores envolvidos em seu cálculo.
+
+A comparação entre o sistema CA implementado em C e a estratégia da MGDO, também implementada em C, foi satisfatória. A precisão encontrada na comparação foi superior a 7 casas decimais.
+
+\subsection{Análises de perfil das soluções por MGDO e CA}
+
+As análises de perfil para as soluções por MGDO e CA fora realizadas utilizando-se do compilador G++, do linux, e da ferramenta GPROF. Para facilitar a visualização e a contagem de tempo das execuções unitárias de cada programa, os mesmos foram executados de maneira automática por 1000 vezes. Cada execução corresponde a 160 evoluções temporais de um sistema composto por 185 células autômatas. Um resumo se encontra na Tabela \ref{tab:gprof}, a seguir.
+
+\begin{table}
+\centering
+\caption{\label{tab:gprof} Análise de perfil das soluções MGDO e CA.}
+\begin{tabular}{ |p{4.5cm}|p{4cm}|p{4cm}|  }
+ \hline
+Parâmetro & Solução por FDTD & Solução por CA \\
+ \hline
+Númerod de execuções & $1000$ & $1000$ \\
+ \hline
+Tempo total de execução & $3.36$ seg. & $3.68$ seg. \\
+ \hline
+Qtde de multiplicações & $89446$ & $57121$ \\
+ \hline
+Qtde de somas & $59526$ & $864$ \\
+ \hline
+Qtde de divisões & $9$ & $0$ \\
+ \hline
+\end{tabular}
+\end{table}
+
+Vale ressaltar aqui a relevância do projeto abordado neste trabalho. Como se pode observar, os procedimentos de cálculo apresentados são densos, ainda que em um caso simplificado. Em uma simulação padrão aplicada a uma sala com aproximadamente 16 $m^2$ e pé direito de 2.5 m, podemos ter uma quantidade de juntas/células da ordem de 6 dígitos\footnote{Para simular cenários acústicos reais precisamos, no mínimo, cobrir a faixa de frequências ($20Hz \approx 10KHz$). Para isso, precisamos de uma frequência de atualização de malha igual a $20KHz$.}. Ou seja, trata-se de uma aplicação com elevado custo computacional, necessitando de paralelização e/ou acelerações em hardware.
+
+\subsection{Projeto do sistema CA Camphs1D}
+
+Após da definição do conjunto de regras deste sistema CA, e da definição matemática de suas células, o projeto RTL foi iniciado. Em paralelo, cada célula foi descrita em VHDL e testada através de simulações comportamentais. Este estágio foi importante para a produção do CORE CA, utilizando-se dos IP-cores aplicados às multiplicações e somas com representação aritmética de ponto flutuante em 27 bits. Os IP-cores de cálculo aritmético em ponto flutuante em 27 bits (FPUPACK27), foram desenvolvidos no
+laboratório LEIA/GRACO da Universidade de Brasília
+\cite{Munoz} \cite{Munoz_2}.
+
+\subsubsection{Blocos operacionais: células autômatas}
+
+A seguir serão apresentados os blocos operacionais de cada uma das células desenvolvidas. Neste estágio do projeto, os três padrões de comportamento celular idealizados foram convertidos em duas únicas células, denominadas \lq\lq células autômatas globais\rq\rq e \lq\lq células autômatas híbridas \rq\rq. O termo \lq\lq global\rq\rq se deve ao fato destas células representarem a maior parte da arquitetura principal do sistema CA. 
+
+Comecemos pelo resumo das portas consideradas em cada um dos componentes (células autômatas). As informações estão dispostas na Tabela \ref{tab:sinais}, a seguir. Um maior detalhamento de todos os sinais apresentados nestas tabelas poderá ser encontrado no capitulo 4.
+
+\begin{table}
+\centering
+\caption{\label{tab:sinais} Sinais das utilizados nas células Autômatas GCA1D e HCA1D.}
+\begin{tabular}{ |p{4cm}|p{1.5cm}|p{1.5cm}|p{5.5cm}|  }
+ \hline
+Porta & IN/OUT & Bits & Função \\
+ \hline
+RESET & IN & 1 & Inicialização de registradores \\
+\hline
+MODE  & IN & 2 & Geração, dispersão ou \lq\lq OFF \rq\rq \\
+\hline
+SOURCE  & IN & 27 & Valor imposto (fonte)  \\
+\hline
+GAIN  & IN & 27 & Ganho interno (fonte)  \\
+\hline
+SCE\_STIM  & IN & 1 & Estímulo para geração \\
+\hline
+LEFT\_STIM  & IN & 1 & Estímulo para dispersão \\ 
+\hline
+RIGHT\_STIM  & IN & 1 & Estímulo para dispersão \\
+\hline
+LEFT  & IN & 27 & Coef. transm. de ondas à esq. \\
+\hline
+RIGHT  & IN & 27 & Coef. transm. de ondas à dir. \\
+\hline
+LEFTIN  & IN & 27 & Valor de ondas à esquerda \\
+\hline
+RIGHTIN  & IN & 27 & Valor de ondas à direita \\
+\hline
+RIGHT\_READY  & OUT & 1 & Disponibilidade da info. \\
+\hline
+LEFT\_READY  & OUT & 1 & Disponibilidade da info. \\
+\hline
+RIGHTOUT  & OUT & 27 & Valor de saída à dir. \\
+\hline
+LEFTOUT  & OUT & 27 & Valor de saída à esq. \\
+\hline
+CROSSLEFT & IN & 27 & Coef. de geração de ondas \\
+\hline
+CROSSRIGHT & IN & 27 & Coef. de geração de ondas \\
+\hline
+CLK  & IN & 1 & Funcionamento síncrono \\
+\hline
+\end{tabular}
+\end{table}
+
+O bloco operacional da célula autômata GCA1D está apresentado na Figura \ref{fig:celulas}, a seguir. Esta célula pode executar os trabalhos de geração de ondas e dispersão de ondas, geralmente executados nesta ordem. Algumas células GCA1D nunca são solicitadas como geradoras de ondas, naturalmente por não ocuparem posição de fontes no sistema. 
+
+O projeto do componente GCA1D, apresentada na Figura \ref{fig:gca_main} utiliza 3 multiplicadores em ponto flutuante em 27 bits, 2 MUXs $3\times 3$, 2 portas lógicas OR, e um registrador de 1 bit. Também temos um banco registrador de 27 bits armazenando uma constante, normalmente configurada para o valor nulo.   
+
+O componente GCA1D opera, de maneira síncrona, em quatro ciclos de relógio, para atender à latência da arquitetura principal. A arquitetura principal promove a integração das células, dentro do organismo artificial CA, em um ambiente funcional programado com sinais externos e recursos para entrada e saída de dados. 
+
+Em seguida temos apresentado também na Figura \ref{fig:celulas} o bloco operacional da célula autômata HCA1D. Esta célula não realiza trabalho duplo, mas híbrido, operando dispersões de ondas e interação com obstáculos. Em seu projeto, foram utilizados 4 multiplicadores e 2 somadores. De maneira semelhante à GCA1D, esta célula autômata também opera com 4 ciclos de relógio. 
+
+\subsubsection{Arquitetura principal: integração de componentes}
+
+A arquitetura a seguir é responsável pela integração celular, de maneira a automatizar o funcionamento do sistema CA. Os sinais de entrada e saída de informações devem ser controlados pela arquitetura maior, também chamada de  \textit{organismo CA artificial}. O organismo CA artificial será representado, neste trabalho, por um arquivo de simulação (\textit{Testfbench} em VHDL).
+
+\begin{figure}[h]
+	\centering
+	\label{gca_main.png}
+		\includegraphics[keepaspectratio=true,scale=0.5]{figuras/gca_main.png}
+	\caption{\label{fig:gca_main}Célula autômata GCA1D. Para representarmos a célula autômata HCA1D, temos que retirar os sinais SET\_STIM, SET, GAIN e MODE e acrescentar os sinais CROSS\_LEFT e CROSS\_RIGHT.}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\label{mainarch.png}
+		\includegraphics[keepaspectratio=true,scale=0.7]{figuras/mainarch.png}
+	\caption{\label{fig:mainarch}Bloco operacional do sistema CA Camphs1D. Neste exemplo, temos uma célula receptora, indicada pelas siglas GCA RCE, externalizando seus sinais \textit{rightout} e \textit{leftout}.}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\label{gca_rtl.png}
+		\includegraphics[keepaspectratio=true,scale=0.45]{figuras/gca_rtl.png}
+	\caption{\label{fig:celulas}Blocos operacionais das células autômatas GCA1D e HCA1D. As células são compostas de multiplicadores e somadores em ponto flutuante de 27 bits, além de portas lógicas, multiplexadores e registradores.}
+\end{figure}
+
+A arquitetura principal está apresentada na Figura \ref{fig:mainarch}, acima. A título de exemplo, temos nesta arquitetura uma integração aleatória com apenas uma célula HCA1D.
+
+Nesta arquitetura principal temos ainda bancos de registradores para cada uma das células autômatas. Tais informações representam os coeficientes utilizados pelo sistema CA, capazes de decodificarem as informações de impedância para as células autômatas.
+
+Os sinais CLK, GAIN, RESET, MODE (2 bits) e SOURCE (27 bits) são diretamente passados para as células autômatas correspondentes. Cada célula autômata se comunica com sua vizinhança através de 4 sinais, sendo 2 sinais de READY (1 bit para cada direção de propagação) e 2 sinais de onda (27 bits). Falta mencionar o sinal de START, que foi estabelecido para iniciar todas as células GCA1D em modo de geração.
+
+Deste modo, uma célula autômata só opera seus cálculos quando estimulada pela vizinhança, em uma direção específica. Esta característica representa uma vantagem para a implementação em hardware, pois o sistema CA projetado trabalha de modo a permitir o \lq\lq descanso \rq\rq de células autômatas. Em termos de software, o mesmo poderia ser obtido a partir do uso de matrizes esparsas, porém com uso de lógica mais complexa.  
+
+\subsection{Notas sobre o desenvolvimento e aplicações do sistema CA Camphs1D}
+
+Inicialmente, um sistema CA tem as suas células desenhadas para operarem da forma mais simples e rápida possível, evitando a necessidade de lógica adicional e demais recursos que possam consumir ciclos extra de relógio.
+
+Após os testes unitários, usando de simulação comportamental, a célula autômata GCA1D apresentou uma operação em apenas 3 ciclos de relógio, em sua atividade de geração de ondas. Por outro lado, a célula autômata HCA1D, por envolver maior quantidade de operações, apresentou uma latência de 4 ciclos de relógio.
+
+Para atender ao sincronismo desejado, foi adicionado à célula autômata GCA1D um atraso de 1 ciclo de relógio (registrador intermediário). Deste modo, a célula passou a operar com 4 ciclos de relógio - independentemente de estar em modo de dispersão ou geração. 
+
+Foi dada à célula GCA1D a habilidade de permanecer desativada durante o funcionamento do sistema CA. Desta forma, uma célula autômata GCA1D pode absorver $100\%$ da energia incidente, sem causar prejuízos ao funcionamento das células vizinhas. Este recurso é útil para definição de condições perfeitamente anecoicas, fato que é difícil de conseguir em técnicas baseadas na resolução numérica de EDO.
+
+\section{Projeto das simulações comportamentais}
+
+Em primeiro lugar vamos nos aprofundar nos detalhes do sistema CA projetado. Trata-se de um circuito sequencial, síncrono, capaz de transmitir, pelo tempo que for preciso, os sinais de onda através de uma malha de componentes interligados (células autômatas). O sistema CA projetado nesta primeira parte do trabalho não necessita de uma FSM, mas sim de sequências binárias que indicam o modo de funcionamento das células geradoras. Todas as demais células autômatas operam conforme sua natureza, a cada ciclo do sistema, sem a necessidade de qualquer intervenção externa.
+
+As mencionadas sequências binárias representam os valores para os sinais de controle deste sistema CA. O primeiro deles, denominado MODE, pode provocar uma mudança no modo de operação das células GCA1D, fazendo com que as mesmas parem de gerar ondas, para apenas transmitirem sinais. O caminho reverso também é possível.
+
+O segundo sinal de controle a ser mencionado é o RESET. Este sinal é de extrema importância para o correto funcionamento do CORE das células autômatas. Todas as células são compostas por somadores e multiplicadores em 27 bits, e suas portas de saída estão permanentemente conectadas à portas de entrada das células vizinhas. Deste modo, quando uma célula autômata é estimulada, em qualquer direção, a mesma retira as informações de entrada de suas células vizinhas e processa as suas saídas.
+
+Em outras palavras, o CORE das células autômatas não identifica se a onda está se movendo da esquerda para a direita ou da direita para esquerda, ele apenas processa os dados que estão nas suas portas de entrada. Por este motivo, o sinal de RESET deve garantir que todas as portas de saída, de todas as células autômatas, sejam carregadas de zeros. Deste modo, o sistema todo irá funcionar adequadamente na presença de ondas se movendo em qualquer direção.
+
+Existem outros sinais de extrema importância para o sistema CA, que são os estímulos para que as células autômatas trabalhem. Os estímulos indicam a direção de propagação das ondas sonoras, fazendo com que uma informação seja impulsionada na direção correta, desde a fonte até à sua completa dissipação nas fronteiras do sistema CA\footnote{A dissipação de energia sonora ocorre nas fronteiras devido aos fenômenos de transmissão de ondas. Somente as parcelas refletidas nas fronteiras do sistema retornam energia para o mesmo.}.
+
+Felizmente, os sinais de estímulo não precisam ser controlados. Os estímulos precisam ser, apropriadamente, conectados entre as células, para depois operarem simplesmente conforme os sinais de READY das mesmas.
+
+Uma célula autômata GCA1D possui 3 sinais de estímulo, sendo um para uma possível atividade de geração e outros 2 para suas direções de propagação de ondas. As células autômatas HCA1D possuem apenas 2 sinais de estímulo. As células HCA1D são recomendadas para modelagem de fronteiras e obstáculos, enquanto as células GCA1D representam o meio de transporte de ondas.
+
+Neste momento o conceito completo de um ``organismo artificial'' pode ser completamente entendido. Trata-se de um ambiente que encapsula uma arquitetura principal (integradora de células autômatas) fornecendo-a sinais de controle adequados para a operação automática. Conforme o pensamento de Von Neumann, um sistema CA representa, matematicamente, um organismo natural dotado de funções primitivas, básicas para a sua existência, movido sem a necessidade de uma lógica complexa. 
+
+Dois organismos artificiais foram testados através de simulações comportamentais. O primeiro, denominado Camphs1D05G1, foi utilizado para descrever completamente o funcionamento do sistema Camphs1D, enquanto o segundo, Camphs1DB9G2, foi utilizado em contraste com o modelo de referência adotado neste trabalho. Simulações automáticas com leitura e escrita de arquivos foram aplicadas nos dois casos para decodificação e observação dos resultados obtidos.
+
+\subsection{Organismo artificial Camphs1D05G1}
+
+O primeiro organismo artificial CA testado possui uma arquitetura integradora com cinco células autômatas, sendo 2 HCA1D e 3 GCA1D. A célula autômata central foi utilizada como termo fonte, durante o instante inicial de operação do sistema. Foi possível observar, através de uma simulação automática com leitura e escrita de arquivos, os sinais de saída em uma das células do sistema.
+
+\begin{figure}[h]
+	\centering
+	\label{Camphs1D1.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/Camphs1D1.png}
+	\caption{\label{fig:camphs1D1}Esboço da arquitetura Camphs1D05G1. Temos 5 células autômatas, distribuídas em dois tipos(G/H), e 2 sinais receptores (RCE).}
+\end{figure}
+
+%\clearpage
+%\newpage
+
+\subsubsection{Diagrama de tempo: sinais de controle para Camphs1D05G1}
+
+Os sinais de controle utilizados na simulação comportamental do organismo \\ Camphs1D05G1 estão apresentados na Figura \ref{fig:tempo_1}, a seguir. Nota-se que o sinal de RESET foi disparado logo no início da simulação, seguido por 2 sinais de START, espaçados de 4 ciclos de relógio. Este espaçamento é necessário para suportar a latência das células autômatas.
+
+Os sinais MODE, START e SOURCE foram fornecidos através da leitura automática de arquivos TXT. A leitura é realizada até que o final do arquivo seja encontrado, sempre na borda de subida do relógio - todo o sistema opera na borda de subida do relógio.
+
+A transição do sinal MODE (\lq\lq 10 \rq\rq = geração, \lq\lq 01 \rq\rq = dispersão, outros = \lq\lq OFF \rq\rq) é efetuada após 10 ciclos de relógio, modificando o comportamento da célula autômata geradora. Deste modo, quarto ciclo de relógio depois do segundo sinal de START, esta célula autômata necessariamente passará a ignorar o sinal SOURCE, para se portar com uma célula de dispersão.
+
+\begin{figure}[h]
+	\centering
+	\label{tempo_1.png}
+		\includegraphics[keepaspectratio=true,scale=0.35]{figuras/tempo_1.png}
+	\caption{\label{fig:tempo_1}Diagrama de tempo utilizado no organismo artificial Camphs1D05G1.}
+\end{figure}
+
+O sinal SOURCE foi programado para inserir o valor $20d0000_h$ ($20_d$) durante 5 ciclos de relógio. Em seguida este valor se altera permanentemente para zero, antes do próximo disparo da célula geradora. O ganho foi fixado em $2090000_h$ ($10_d$).
+
+\subsection{Organismo artificial Camphs1DB9G2}
+
+O organismo artificial Camphs1DB9G2 foi projetado com 187 células autômatas, submetido às mesmas condições de contorno do modelo de referência. Duas células GCA1D foram utilizadas em modo de geração, de maneira semelhante ao modelo de referência. Outras 3 células HCA1D foram utilizadas para representar os obstáculos existentes no modelo de referência. Todos os cuidados em relação aos sinais de controle, incluindo os sinais fornecidos às células geradoras, foram estabelecidos para que os mesmo comportamento pudesse ser estimulado.
+
+\begin{figure}[h]
+	\centering
+	\label{main187.png}
+		\includegraphics[keepaspectratio=true,scale=0.6]{figuras/main187.png}
+	\caption{\label{fig:camphs1D2}Esboço da arquitetura Camphs1DB9G2.}
+\end{figure}
+
+O célula autômata utilizada como receptor foi a de número 20. As células autômatas geradoras foram as de número 44 e 94. As células autômatas 1 e 187 ficaram desligadas durante todo o tempo (podem ser eliminadas deste sistema). 
+
+Foram gerados 2 sinais senoidais em acordo com a frequência de amostragem simulada pelo sistema CA ($f_s=3200Hz$). Os valores discretos em PF 27 bits, para estes sinais, estão apresentados na tabela \ref{tab:amostragem}.
+
+\begin{table}
+\centering
+\caption{\label{tab:amostragem} Amostragem de um sinal senoidal de $400 Hz$ a $3200 Hz$, para operação das células geradoras no organismo artificial Camphs1DB9G2.}
+\begin{tabular}{ |p{6cm}|p{3cm}|p{4cm}|  }
+ \hline
+ Célula autômata (PFU 27bits) & Hexadecimais & Seno 400 Hz (3200 Hz) \\
+ \hline
+ 001111110011010100000100111 & 1F9A827 &0.70710563659668 \\
+ \hline
+ 001111111000000000000000000 & 1FC0000 & 1 \\
+ \hline
+ 001111110011010100000100111 & 1F9A827 & 0.70710563659668 \\
+ \hline
+ 000000000000000000000000000 & 0000000 & 0 \\
+ \hline
+ 101111110011010100000100111 & 5F9A827 & -0.70710563659668 \\
+ \hline
+ 101111111000000000000000000 & 5FC0000& -1 \\
+ \hline
+ 101111110011010100000100111 & 5F9A827 & -0.70710563659668 \\
+ \hline
+ 000000000000000000000000000 & 0000000 & 0 \\
+ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Diagrama de tempo: sinais de controle para Camphs1DB9G2}
+
+Os sinais de controle utilizados na simulação comportamental do organismo artificial Camphs1DB9G2 estão mostrados na Figura \ref{fig:tempo_2}, a seguir. Neste caso, são 2 células autômatas geradoras, por isso temos 2 sinais START, 2 sinais MODE e 2 sinais SOURCE, denominados pelo índice das respectivas células geradoras.
+
+Nota-se que os sinais de fonte foram carregados com os valores apresentados na tabela \ref{tab:amostragem}. O tempo de operação da célula geradora 44 corresponde ao dobro do tempo da célula 94. Os sinais MODE foram definidos adequadamente para permitirem o funcionamento das células geradoras.
+
+\clearpage
+\newpage
+
+\begin{figure}[h]
+	\centering
+	\label{tempo_2.png}
+		\includegraphics[keepaspectratio=true,scale=0.28]{figuras/tempo_2.png}
+	\caption{\label{fig:tempo_2}Diagrama de tempo utilizado no organismo artificial Camphs1DB9G2.}
+\end{figure}
+
+\subsection{Padronização do sistema Camphs1D: rotina vCAgen}
+
+As arquiteturas principais, constituídas nos organismos artificiais Camphs1D05G1 e Camphs1DB9G2, são responsáveis por toda a integração de componentes. A arquitetura principal de Camphs1D05G1 totalizou cerca de 200 linhas de código VDLH para apenas 5 componentes. Esta verificação levantou a necessidade de se padronizar o processo de construção de novas arquiteturas, pois a quantidade excessiva de linhas pode inserir dificuldades e riscos de erros em um processo manual de descrição. 
+
+Deste modo, foi gerado uma rotina computacional dedicada à realização de uma arquitetura padrão para sistemas Camphs1D, em linguagem VHDL - denominada vCAgen. A arquitetura principal de Camphs1DB9G2 foi gerada automaticamente a partir deste procedimento, resultando em um código com mais de 4200 linhas. A rotina vCAgen foi desenvolvida no software Octave, e possui cerca de 100 linhas orientadas para a definição dos sinais e geometrias utilizadas na construção de uma arquitetura principal. Através deste processo de padronização, é possível realizar, automaticamente, as seguintes tarefas:
+
+\begin{description}
+    \begin{itemize}
+        \item definição de todos os sinais utilizados
+	    \item instanciação de todos os componentes (células autômatas). 
+	    \item atribuição de todos os sinais de controle, visando a integração celular.
+	    \item atribuição de sinais de fonte, para o controle do comportamento de uma ou mais células autômatas globais geradoras. 
+	    \item atribuição de sinais receptores, para externalização das saídas de uma ou mais células autômatas globais de dispersão.
+	 \end{itemize}
+\end{description}
+
+\subsection{Validação das simulações comportamentais}
+
+As simulações comportamentais foram realizadas através de \textit{Test Benches}, desenvolvidos em VHDL. As informações pertencentes à cada fonte inserida no sistema foram alimentadas através de um processo de leitura automática de arquivos TXT, em acordo com o respectivo diagrama de tempo.
+
+Os resultados das simulações foram escritos em arquivos de texto (TXT), a cada borda de subida do relógio. Tais resultados englobam todos os registros dos sinais de estímulo e saídas de valores, em PF 27 bits, da(s) célula(s) receptora(s). Os valores de saída estão, neste estágio, divididos em 2 canais, referentes às ondas transmitidas nos sentidos esquerdo e direito.
+
+Em software, os arquivos de saída são decodificados e processados de maneira a se produzir um único vetor com os quantidades resultantes das ondas passantes na(s) célula(s) receptora(s). Os principais trechos do arquivo utilizado na decodificação das saídas mencionadas podem ser apreciados no capítulo seguinte.
+
+Nas simulações praticadas, os arquivos de saída dos organismos artificiais devem ser re-amostrados através de um sinal de relógio sincronizado de duas formas possíveis: (1) através do sinal READY da(s) célula(s) receptora(s) ou (2) através de um sinal de relógio sincronizado com a resposta do sistema CA. Este procedimento é necessário para se desprezar valores registrados durante a latência do sistema. 
+
+A partir de análises gráficas foi possível validar os resultados, juntamente com o MSE obtido entre as soluções em VHDL e linguagem C. 
+
+\begin{figure}[h]
+	\centering
+	\label{validacao.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/validacao.png}
+	\caption{\label{fig:validacao}Diagrama esquemático representativo da validação de Camphs1DB9G2. Para maior detalhamento dos sinais envolvidos na arquitetura principal consultar Figura \ref{fig:mainarch}. }
+\end{figure}
+
+\section{Projeto das implementações em placa}
+
+Em diversas situações de projeto, temos a necessidade de criar, encapsular e utilizar IP-cores que representem o funcionamento específico de funções/algoritmos matemáticos, para uso embarcado em FPGA. Desta forma, a primeira implementação do sistema foi realizada, através da integração dos IP-cores Block Memory Generation (BMG), Integrated Logic Analyser (ILA) e Virtual Input/Output (VIO), junto ao organismo artificial Camphs1D05G1 ( IP-cores já pré-definidos na ferramenta). Nesta direção, foi formatada a primeira estratégia de implementação, apresentada na Figura \ref{fig:Camphs1Diag}.
+
+\begin{figure}[h]
+	\centering
+	\label{Camphs1Diag.png}
+		\includegraphics[keepaspectratio=true,scale=0.9]{figuras/Camphs1Diag.png}
+	\caption{\label{fig:Camphs1Diag}Esboço da primeira estratégia de implementação de Camphs1D. Temos a necessidade de integrar o core CA com uma unidade de memória ROM. Demais IP-cores são necessários para o funcionamento e \textit{debug} de sinais.}
+\end{figure}
+
+Nesta estratégia, temos a construção de um organismo artificial que embarca o CORE das CA e unidades de memória, para que todos os sinais de controle sejam adequadamente administrados, em placa. Temos também a inclusão dos IP-cores BMG (Block Memory Generator) e ILA (Integrated Logic Analyser), possibilitando a manipulação do sistema CA e depuração de resultados. Trata-se de um sistema síncrono, devido as necessidades requeridas pelo(s) componente(s) de memória ROM, fornecidos pelo IP-core BMG. Os 4 sinais de saída apresentados se referem aos sinais de READY, LEFT\_OUT e RIGHT\_OUT de uma única célula receptora (mais células poderia ser consideradas, a depender do kit FPGA utilizado), mas poderiam ser suprimidos.
+
+Pensando de uma maneira mais estruturada, o organismo Camphs1D05G1 também poderia ser configurado e encapsulado como um IP-core, para uso em projetos sistema em chip (SoC) FPGA. Um projeto SoC FPGA nos permite integrar recursos de hardware e software, em uma mesma placa FPGA, com o intuito de ampliarmos o volume de dados considerados nos projetos. Os recursos de software são obtidos a partir da disponibilidade, em silício, de um microprocessador ARM, integrado aos recursos lógicos programáveis de um kit FPGA.
+
+A segunda estratégia vem explorar estas funcionalidades, através da ferramenta Vivado HLS C-level, disponível no  Vivado 2018.3 HLs Webpack, da fabricante Xilinx. No próximo tópico, serão apresentadas as vantagens e limitações do uso da ferramenta mencionada, alternativamente ao uso direto da linguagem VHDL. 
+
+Com relação à placa de desenvolvimento, foi utilizada uma ARTY Z7-20, da fabricante Xilinx. Dentre os seus principais recursos, nos interessa destacar o seu processador ARM ZYNQ SoC 650MHz Dual-Coore Cortex-A9, integrado a uma parte lógica programável equivalente a uma Artix-7 FPGA. Esta placa possui 512 MB de memória DDR3, com barramento de 16 bits @ 1050 MBps.
+
+\subsection{Uma breve descrição da ferramenta Vivado HLS C-level}
+
+A fabricante de chips Xilinx oferece, como alternativa para o desenvolvimento de IP-cores, a ferramenta Vivado HLS C-level. Através desta ferramenta é possível desenvolver um IP-core a partir de um código C/C++, porém com alguns cuidados ou restrições em relação ao seu uso. As principais limitações estão listadas abaixo.
+
+\begin{itemize}
+  \item Não podemos trabalhar com alocação dinâmica de memória.
+  \item Não é permitido trabalhar com funções recursivas.
+  \item Não é permitida a utilização de funções de leitura e entrada de arquivos (I/O).
+  \item não podemos trabalhar com a biblioteca padrão para \textit{containers} tais como vetores, mapas de busca otimizada, entre outros (STD).
+\end{itemize}
+
+Em contraste com estas limitações, temos os benefícios gerados pelo uso da ferramenta Vivado HLS C-level. Dentre os principais, podemos listar:
+
+\begin{itemize}
+  \item Maior produtividade para desenvolvedores de hardwares.
+  \item Disponibilidade de recursos otimizados para cálculos em pontos flutuantes, com 32-bits ou 64-bits.
+  \item Possibilidade de verificação em nível de software (C/C++) e co-simulação, considerando a implementação RTL.
+  \item Possibilidade de se trabalhar com diretrizes programáveis capazes de configurar e aumentar a eficiência da síntese lógica.
+\end{itemize}
+
+O projeto de um IP-core se inicia, no Vivado HLS C-level, com a codificação de um arquivo C/C++ que traga a função matemática em foco, incluindo a operação de parâmetros de entrada, que podem ser deste de endereços de memoria (ponteiros) até estruturas complexas de dados. As funções podem ser do tipo void (sem retorno de dados), ou de tipos padrões tais como char, short, int, float, doble, dentre outros. Uma vez definidas, tais funções podem ser testadas através de um segundo arquivo C/C++, descrito para operar como testador (Test Bench). A estrutura básica de um projeto no Vivado HLS está apresentada na Figura \ref{fig:Vivado_HLS}.
+
+\begin{figure}[h]
+	\centering
+	\label{Vivado_HLS.png}
+		\includegraphics[keepaspectratio=true,scale=0.7]{figuras/Vivado_HLS.png}
+	\caption{\label{fig:Vivado_HLS}Estrutura básica de um projeto gerado no Vivado HLS C-level.}
+\end{figure}
+
+Na Figura \ref{fig:Vivado_HLS} é possível verificar que o Vivado HLS possui os arquivos organizados em uma árvore padrão, de maneira a separar a lógica de funcionamento do IP-core da lógica de teste, que fica na aba \textit{Test Bench}. A Aba denominada \textit{solution1} - neste nome é fornecido pelo usuário no início de um novo projeto - guarda todos os arquivos necessários para a sintetização do IP-core, bem como as bibliotecas necessárias para a operação de interfaces de dados em nível C, tais como o \textit{AXI4-Lite} e o \textit{AXI4-Stream}.
+
+Após a codificação do IP-core, e de seu arquivo de teste, o Vivado HLS C-level nos oferece alguns recursos para depuração da solução. Os principais recursos são: (1) a depuração em software, a partir da compilação e execução do código, no console da ferramenta, e a (2) co-simulação
+software/hardware, que sintetiza a solução em RTL, comparando-a com a solução descrita em software. Existem ainda recursos mais avançados de depuração, tal como análise dos sinais de ondas, que podem nos oferecer uma visão mais concreta sobre o funcionamento do circuito sintetizado. 
+
+Felizmente, a comunidade do Vivado HLS C-level é rica em exemplos e projetos, fato que possibilita o desenvolvimento dos mais diversificados projetos, envolvendo diferentes tipos de estruturas e interfaces de dados. Também existem tutorais bem estruturados para a correta utilização da linguagem C/C++, bem como de diretrizes que se façam convenientes para as sintetizações praticadas. Este trabalho não se aprofundará neste sentido, mantendo-se restrito resolução do problema considerado.
+
+\subsection{O organismo artificial Camphs1D05G1RAV}
+
+O sistema Camphs1D05G1 foi escolhido, devido à sua simplicidade, para a primeira implementação em placa. Para tal, foi necessária a elaboração de uma nova arquitetura, que considera o sistema mencionado integrado com demais componentes capazes de fornecer os sinais de controle, para o organismo operar, e validar dos resultados obtidos. Deste modo, foi construído o organismo artificial Camphs1D05G1RAV, composto pelos módulos que aparecem na Figura \ref{fig:camphs1D05G1RAV}, a seguir.
+
+\begin{figure}[h]
+	\centering
+	\label{Camphs1D05G1RAV.png}
+		\includegraphics[keepaspectratio=true,scale=1.2]{figuras/camphs1D05G1RAV.png}
+	\caption{\label{fig:camphs1D05G1RAV}Esboço da arquitetura Camphs1D05G1RAV. Além do core CA, temos memória ROM embarcada, um IP-core ILA, e um IP-core VIO para introdução de sinais. Temos também uma pequena máquina de estados controlando a unidade de memória ROM.}
+\end{figure}
+
+A construção desta arquitetura começa pela consideração do core Camphs1D05G1, já explorado nas simulações comportamentais realizadas. Em seguida, precisamos de uma memória alocada em placa, para fornecer os sinais de controle necessários para a operação de Camphs1D05G1. Tal recurso pode ser implementado através da memória ROM (BMG), que se trata de um recurso para a implementação de memórias do tipos ROM e RAM. Neste parte do projeto, foram instanciadas três memorias ROM do tipo Single-port, sendo uma para cada sinal de controle.
+
+Cada memória ROM necessita, por sua vez, de uma máquina de estados para sua operação, de acordo com a latência do organismo Camphs1D05G1 - unidade controladora. Tal máquina, é controlada pelo Virtual Input/Output IP-core, através dos sinais de RESET e LOAD. Para finalizar, temos o ILA-core conectado às saídas de Camphs1D05G1, visualizando os sinais oriundos de uma célula receptora, bem como os sinais de READY gerados em suas portas de saída, direita e esquerda.
+
+\subsubsection{Funcionamento da memória embarcada em placa e vetores de teste}
+
+As memórias embarcadas em placa (Single-port ROM) devem ser criadas, ou instanciadas, a partir de três arquivos de texto, relacionados a cada um dos sinais de controle MODE, START e RESET. O conteúdo dos arquivos está apresentado na tabela \ref{tab:controleRav}, a seguir.
+
+\begin{table}[h]
+\centering
+\caption{\label{tab:controleRav} Sinais de controle embarcados na memória ROM, necessários para o funcionamento de Camphs1D05G1RAV.}
+\begin{tabular}{ |p{3cm}|p{2cm}|p{8cm}|  }
+ \hline
+ MODE & START & VALUE \\
+ \hline
+ 10 & 1 & 010000110100100000000000000 \\
+ \hline
+ 10 & 0 & 010000110100100000000000000 \\
+ \hline
+ 10 & 1 & 010000110100100000000000000 \\
+ \hline
+ 01 & 0 & 000000000000000000000000000 \\
+ \hline
+\end{tabular}
+\end{table}
+
+Já foi dito que cada memória ROM deve operar de acordo com a latência do sistema camphs1D05G1. Por motivos de simplificação, as três unidades de memória foram encapsulados em uma arquitetura chamada carom1D05G1, diagramada na Figura \ref{fig:carom1D05G1}. 
+
+\begin{figure}[h]
+	\centering
+	\label{carom1D05G1.png}
+		\includegraphics[keepaspectratio=true,scale=0.9]{figuras/Carom1D05G1.png}
+	\caption{\label{fig:carom1D05G1}Esboço da arquitetura Carom1D05G1. Este componente deve armazenar três sinais de controle, tendo um sinal 2 bits (MOD), um com 27 bits (VAL), e um último sinal com apenas 1 bit (STA).}
+\end{figure}
+
+O funcionamento do sistema ocorre através de dois sinais, RESET e LOAD, fornecidos pelo VIO IP-core, diretamente ao módulo Carom1D05G1]. Na subida do relógio, com o sinal de RESET em nível alto, Camphs1D05G1 retorna os endereços de memória para suas posições iniciais. Na subida do relógio, com o sinal de LOAD em nível alto, Camphs1D05G1 dispara as três memórias em paralelo, fornecendo três valores de endereço a serem lidos. Cada memória ROM possui a latência de dois ciclos de relógio, portanto, a latência de Carom1D05G1 é de três ciclos de relógio.
+
+Conforme se vê na tabela \ref{tab:controleRav}, dois sinais de fonte foram introduzidos no sistema, em formato de pulsos, e com um intervalo de descanso de 1 ciclo operacional (que na prática se equivale a três ciclos de relógio). Desta maneira, se espera obter, para Camphs1D05G1RAV, um \textit{throughput} de exatos 3 ciclos de relógio. Vale ressaltar que os sinais de saída indicados na Figura \ref{fig:camphs1D05G1RAV} foram mantidos no circuito, porém sem necessidade, devido à utilização do ILA-core.
+
+\subsubsection{Análise de tempo realizada para Camphs1D05G1RAV}
+
+Na primeira tentativa de implementação do organismo artificial Camphs1D05G1RAV, sem restrições de tempo, foi obtido uma folga negativa (Setup) de  aproximadamente 22 ns no total, com folgas críticas variando entre 1 e 2 ns. O caminho mais crítico indicava um problema entre o componente Caramo1D05G1 e a célula autômata de número 3, definida como fonte. O problema foi resolvido a partir da inclusão de um arquivo com restrições de tempo, para as seguintes definições (time-constraint.xdc):
+\\
+\begin{algorithmic}[1]
+   \State \# Clock signal
+   \State create\_clock -period 10.00 -name clk -waveform \{0.000 5.000\} [get\_ports clk]
+   \State 
+   \State \# input delays
+   \State set\_input\_delay -clock clk -max 2.0 [get\_ports reset]
+   \State set\_input\_delay -clock clk -min 1.0 [get\_ports reset]
+   \State
+   \State set\_input\_delay -clock clk -max 2.0 [get\_ports start]
+   \State set\_input\_delay -clock clk -min 1.0 [get\_ports start]
+\end{algorithmic}
+
+As informações apresentadas podem ser visualizadas na tabela \ref{tab:timeset}. Os resultados desta implementação, no que se diz respeito aos novos caminhos críticos obtidos, estão apresentados no capítulo de resultados.
+
+\begin{table}[h]
+\centering
+\caption{\label{tab:timeset} Parâmetros adotados na implementação com restrições de tempo.}
+\begin{tabular}{ |p{6cm}|p{2cm}|p{1cm}|p{1cm}|p{1cm}|  }
+ \hline
+ Parâmetro & Valor & DUTY & MAX & MIN \\
+ \hline
+ Relógio : clk & 100 MHz & 50\% & NA & NA \\
+ \hline
+ Input Delay p/ RESET (clk) & NA & NA & 2.0 & 1.0 \\
+ \hline
+ Input Delay p/ START (clk) & NA & NA & 2.0 & 1.0 \\
+ \hline
+\end{tabular}
+\end{table}
+
+\subsection{O organismo artificial Camphs1D05G1AL}
+
+O organismo artificial Camphs1D05G1AL possui um CORE de 5 células autômatas, o mesmo utilizado no primeiro organismo artificial apresentado neste trabalho. Temos também um barramento de dados do tipo \textit{AXI4-Lite}, para transferência de dados entre a memória DDR3 embarcada e o CORE CA. Um esboço deste organismo está apresentado na Figura \ref{fig:camphs1D05G1ALITE}, seguir. 
+
+\begin{figure}[h]
+	\centering
+	\label{AXILITE.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/AXILITE.png}
+	\caption{\label{fig:camphs1D05G1ALITE}Esboço da arquitetura de Camphs1D05G1AL. Este design foi automaticamente constituído pela ferramenta Vivado 2018.3 Webpack.}
+\end{figure}
+
+Neste arquitetura, o CORE CA (PL) foi programado juntamente com uma interface \textit{AXI4-Lite}, de maneira a permitir a comunicação com o PS (\textit{ARM Processor System}). O sistema como um todo possui, além do IP-core Camphs1D05G1AL, alguns módulos necessários para funcionamento do ARM, que são o \textit{Axi Intercennect} e o \textit{Processor System}, além da portas de acesso à memória DDR3.
+
+O \textit{Axi Interconnect} promove a conexão entre 1 ou mais dispositivos mestres de memória mapeada (ARM) com 1 ou mais dispositivos escravos de memória mapeável (Camphs1D05G1AL). O acesso de memória via mapeamento de endereços é uma das características do barramento de dados \textit{AXI4-Lite}, e por este motivo a sua utilização para grandes volumes de dados não é indicada - nestes casos, o \textit{AXI4-Stream} deve ser preferido. Para finalizar, o \textit{Processor System Reset} permite que o PS realize a manipulação dos sinais RESET, em todos os componentes do sistema.
+
+O organismo artificial Camphs1D05G1AL é indicado para situações nas quais o sistema CA seja estimulado sem a presença de um receptor, entre as suas células. Deste modo, o sistema efetuará a evolução celular em hardware, durante o número de ciclos requeridos pelo PS. Trata-se de um solução de elevada eficiência e velocidade, uma vez que o IP-core (escravo) não é interrompido durante seu ciclo interno de funcionamento.
+
+\begin{figure}[h]
+	\centering
+	\label{Camphs1D05G1AL.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/Camphs1D05G1AL.png}
+	\caption{\label{fig:camphs1D05G1AL}Esboço do CORE de Camphs1D05G1AL. A interface \textit{AXI4-Lite} promove a introdução e externalização dos sinais no core CA, que opera ciclicamente até o estado final desejado.}
+\end{figure}
+
+Como se pode ver na Figura \ref{fig:camphs1D05G1AL}, O CORE de Camphs1D05G1AL temos dois parâmetros de entrada e um parâmetro de saída, do tipo \textit{wav1D5}. Trata-se de uma estrutura de dados, definida pelas linhas de código seguintes (camphs1D05G1AL.h).\\
+\\
+\begin{algorithmic}[1]
+   \State \#ifndef \_\_WAVEGUIDE\_1D5\_\_
+   \State \#define \_\_WAVEGUIDE\_1D5\_\_
+   \State 
+   \State struct wav1D5 \{
+   \State \hspace{9}  float lg0;
+   \State \hspace{9}  float lg1;
+   \State \hspace{9}  float lg2; 
+   \State \hspace{9}  float lg3;
+   \State \hspace{9}  float lg4;
+   \State \hspace{9}  float rg0;
+   \State \hspace{9}  float rg1;
+   \State \hspace{9}  float rg2;
+   \State \hspace{9}  float rg3;
+   \State \hspace{9}  float rg4;
+   \State \}
+   \State
+   \State \#endif  
+\end{algorithmic}
+
+A estrutura wav1D5 representa 2 guias de ondas (esquerda e direita) distribuídas em 5 células autônomas. Internamente, camphs1D05G1AL possui todos os parâmetros necessários par a sua execução, programada para um determinado número de ciclos operacionais. As estruturas \textit{wa} e \textit{wb} se interagem de maneira a evoluir os seus valores, até que \textit{wa} atinja o seu estado final. A interface \textit{AXI4-Lite} é utilizada 2 únicas vezes, sendo a primeira para leitura dos valores iniciais e a segunda para retorno dos valores finais.
+
+\subsection{O organismo artificial Camphs1D05G1AS}
+
+O organismo artificial Camphs1D05G1 também possui um CORE de 5 células autômatas, o mesmo utilizado no primeiro organismo artificial apresentado neste trabalho. Temos também os barramentos de dados dos tipos \textit{AXI4-Lite} e \textit{AXI4-Stream}, operando conjuntamente, para transferência de dados entre a memória DDR3 embarcada e o CORE CA. Um esboço deste organismo está apresentado na Figura \ref{fig:camphs1D05G1ASTREAM}, seguir. 
+
+\begin{figure}[h]
+	\centering
+	\label{AXIDMA.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/AXIDMA.png}
+	\caption{\label{fig:camphs1D05G1ASTREAM}Esboço da arquitetura de Camphs1D05G1AS. Este design foi automaticamente constituído pela ferramenta Vivado 2018.3 Webpack.}
+\end{figure}
+
+Os módulos \textit{Axi Interconnect} e \textit{Processor System Reset} operam de maneira semelhante ao primeiro caso apresentado. Temos ainda o módulo \textit{Axi Smart Connect} como uma interface importante para a comunicação de dados, entre o escravo, IP-core Camphs1D05G1AS, e o mestre, PS, com funções semelhantes ao \textit{Axi Interconnect}.
+
+Este sistema é mais complexo do que o primeiro apresentado, devido à presença de uma interface AXI4-Sream que conecta as saídas de uma célula receptora diretamente à memória. Desta maneira, o IP-core Camphs1D05G1AS externaliza seus resultados paralelamente às suas operações internas, a partir de uma única chamada da interface \textit{AXI4-Lite} - passagem das estruturas iniciais. Um esboço do CORE utilizado está apresentado na Figura \ref{fig:camphs1D05G1AS}, a seguir.
+
+\begin{figure}[h]
+	\centering
+	\label{Camphs1D05G1AS.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/Camphs1D05G1AS.png}
+	\caption{\label{fig:camphs1D05G1AS}Esboço do CORE de Camphs1D05G1AS. A interface \textit{AXI4-Lite} promove a introdução e externalização do estado final do core CA, enquanto a interface \textit{AXI4-Stream} externaliza os sinais receptores.}
+\end{figure}
+
+Observe que Camphs1D05G1AS retorna o valor combinado das saídas direita e esquerda da célula receptora. Estes valores podem ser graficamente visualizados e validados, posteriormente.
+
+O organismo artificial Camphs1D05G1AS é indicado para situações nas quais se tenha a necessidade de captar os sinais de uma célula autômata receptora, paralelamente ao funcionamento do organismo artificial. Para a interface \textit{AXI4-Lite} realizar tal tarefa seria necessário realizar um \textit{loop} externo, em nível de software, com chamadas sucessivas do IP-core Camphs1D05G1AL. Esta estratégia não seria otimizada e, portanto, deve ser evitada.
+
+\subsubsection{Validação das implementações realizadas em placa} 
+
+O modelo de referência adotado para validação dos resultados, para ambos os organismos, pode ser obtido analiticamente, devido à sua simplicidade. Os testes foram realizados a partir de um sinal de estímulo (célula geradora) unitário, disparado uma única vez, capaz de fazer o organismo artificial funcionar por um período pré-definido de tempo.
+
+Ambos os organismos artificiais apresentados devem retornar, ao final do seu ciclo de operação, os valores correspondentes às suas saídas direita e esquerda. Estes valores podem ser diretamente comparados com os valores obtidos pelo do modelo de referência. O organismo artificial Camphs1D05G1AS também retorna tais valores, porém com o acréscimo de um vetor contendo os valores resultantes obtidos pela célula autômata receptora. Os valores esperados pelo modelo de referência se encontram a seguir.
+
+\begin{table}[h]
+\caption{\label{tab:refaxilite} Valores de referência para Camphs1D05G1AL. Excitação e resultados após 11 interações (contando a excitação).}
+\begin{center}
+\begin{tabular}{| l | r | r | r | r | r |}
+\hline
+& \multicolumn{5}{c|}{Células Autômatas}\\
+\cline{2 - 6} % linha horizontal entre as colunas
+% 2 e 4
+Vetores & \#1 & \#2 & \#3 & \#4 & \#5 \\
+\hline
+Excitação & 0{.}0000 & 0{.}0000 & 1{.}0000 & 0{.}0000 & 0{.}0000 \\
+\textit{Left-going wave} & 0{.}1250 & 0{.}0000 & 1{.}0000 & 0{.}0000 & 0{.}1250 \\
+\textit{Right-going wave} & 0{.}1250 & 0{.}0000 & 1{.}0000 & 0{.}0000 & 0{.}1250 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{\label{tab:refaxistream} Valores de referência para Camphs1D05G1AS. Excitação e resultados após 10 interações (contando a excitação).}
+\begin{center}
+\begin{tabular}{| l | r | r | r | r | r |}
+\hline
+& \multicolumn{5}{c|}{Células Autômatas}\\
+\cline{2 - 6} % linha horizontal entre as colunas
+% 2 e 4
+Vetores & \#1 & \#2 & \#3 & \#4 & \#5 \\
+\hline
+Excitação & 0{.}0000 & 0{.}0000 & 1{.}0000 & 0{.}0000 & 0{.}0000 \\
+\textit{Left-going wave} & 0{.}0000 & 0{.}0000 & 1{.}0000 & 0{.}2500 & 0{.}0000 \\
+\textit{Right-going wave} & 0{.}0000 & 0{.}2500 & 1{.}0000 & 0{.}0000 & 0{.}0000 \\
+\hline
+\end{tabular}
+\end{center}
+\centering
+\begin{tabular}{ |p{2cm}|p{7cm}|  }
+\hline
+Tempo & Valores lidos pelo receptor em \#2 \\
+\hline
+1 & 0{.}0000 \\
+ \hline
+2 & 1{.}0000 \\
+ \hline
+3 & 0{.}0000 \\
+ \hline
+4 & 0{.}5000 \\
+ \hline
+5 & 0{.}0000 \\
+ \hline
+6 & 0{.}5000 \\
+ \hline
+7 & 0{.}0000 \\
+ \hline
+8 & 0{.}2500 \\
+ \hline
+9 & 0{.}0000 \\
+ \hline
+10 & 0{.}2500 \\
+ \hline
+\end{tabular}
+\end{table}

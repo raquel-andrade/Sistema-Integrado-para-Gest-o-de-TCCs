@@ -1,0 +1,147 @@
+\chapter[Projeto das simulações comportamentais]{Projeto das simulações comportamentais}
+
+Em primeiro lugar vamos nos aprofundar nos detalhes do sistema CA projetado. Trata-se de um circuito sequencial, síncrono, capaz de transmitir, pelo tempo que for preciso, os sinais de onda através de uma malha de componentes interligados (células autômatas). O sistema CA projetado nesta primeira parte do trabalho não necessita de uma FSM, mas sim de sequências binárias que indicam o modo de funcionamento das células geradoras. Todas as demais células autômatas operam conforme sua natureza, a cada ciclo do sistema, sem a necessidade de qualquer intervenção externa.
+
+As mencionadas sequências binárias representam os valores para os sinais de controle deste sistema CA. O primeiro deles, denominado MODE, pode provocar uma mudança no modo de operação das células GCA1D, fazendo com que as mesmas parem de gerar ondas, para apenas transmitirem sinais. O caminho reverso também é possível.
+
+O segundo sinal de controle a ser mencionado é o RESET. Este sinal é de extrema importância para o correto funcionamento do CORE das células autômatas. Todas as células são compostas por somadores e multiplicadores em 27 bits, e suas portas de saída estão permanentemente conectadas à portas de entrada das células vizinhas. Deste modo, quando uma célula autômata é estimulada, em qualquer direção, a mesma retira as informações de entrada de suas células vizinhas e processa as suas saídas.
+
+Em outras palavras, o CORE das células autômatas não identifica se a onda está se movendo da esquerda para a direita ou da direita para esquerda, ele apenas processa os dados que estão nas suas portas de entrada. Por este motivo, o sinal de RESET deve garantir que todas as portas de saída, de todas as células autômatas, sejam carregadas de zeros. Deste modo, o sistema todo irá funcionar adequadamente na presença de ondas se movendo em qualquer direção.
+
+Existem outros sinais de extrema importância para o sistema CA, que são os estímulos para que as células autômatas trabalhem. Os estímulos indicam a direção de propagação das ondas sonoras, fazendo com que uma informação seja impulsionada na direção correta, desde a fonte até à sua completa dissipação nas fronteiras do sistema CA\footnote{A dissipação de energia sonora ocorre nas fronteiras devido aos fenômenos de transmissão de ondas. Somente as parcelas refletidas nas fronteiras do sistema retornam energia para o mesmo.}.
+
+Felizmente, os sinais de estímulo não precisam ser controlados. Os estímulos precisam ser, apropriadamente, conectados entre as células, para depois operarem simplesmente conforme os sinais de READY das mesmas.
+
+Uma célula autômata GCA1D possui 3 sinais de estímulo, sendo um para uma possível atividade de geração e outros 2 para suas direções de propagação de ondas. As células autômatas HCA1D possuem apenas 2 sinais de estímulo. As células HCA1D são recomendadas para modelagem de fronteiras e obstáculos, enquanto as células GCA1D representam o meio de transporte de ondas.
+
+Neste momento o conceito completo de um \lq\lq organismo artificial \rq\rq pode ser completamente entendido. Trata-se de um ambiente que encapsula uma arquitetura principal (integradora de células autômatas) fornecendo-a sinais de controle adequados para a operação automática. Conforme o pensamento de Von Newmann, um sistema CA representa, matematicamente, um organismo natural dotado de funções primitivas, básicas para a sua existência, movido sem a necessidade de uma lógica complexa. 
+
+Dois organismos artificiais foram testados no presente trabalho. O primeiro, denominado Camphs1D05G1, foi utilizado para descrever completamente o funcionamento do sistema Camphs1D, enquanto o segundo, Camphs1DB9G2, foi utilizado em contraste com o modelo de referência adotado neste trabalho. Simulações automáticas com leitura e escrita de arquivos foram aplicadas nos dois casos para decodificação e observação dos resultados obtidos.
+
+\section{Organismo artificial Camphs1D05G1}
+
+O primeiro organismo artificial CA testado possui uma arquitetura integradora com cinco células autômatas, sendo 2 HCA1D e 3 GCA1D. A célula autômata central foi utilizada como termo fonte, durante o instante inicial de operação do sistema. Foi possível observar, através de uma simulação automática com leitura e escrita de arquivos, os sinais de saída em uma das células do sistema.
+
+\begin{figure}[h]
+	\centering
+	\label{Camphs1D1.png}
+		\includegraphics[keepaspectratio=true,scale=0.9]{figuras/Camphs1D1.png}
+	\caption{\label{fig:camphs1D1}Esboço da arquitetura Camphs1D05G1.}
+\end{figure}
+
+\clearpage
+\newpage
+
+\subsection{Diagrama de tempo: sinais de controle para Camphs1D05G1}
+
+Os sinais de controle utilizados na simulação comportamental do organismo \\ Camphs1D05G1 estão apresentados na figura \ref{fig:tempo_1}, a seguir. Nota-se que o sinal de RESET foi disparado logo no início da simulação, seguido por 2 sinais de START, espaçados de 4 ciclos de relógio. Este espaçamento é necessário para suportar a latência das células autômatas.
+
+Os sinais MODE, START e SOURCE foram fornecidos através da leitura automática de arquivos TXT. A leitura é realizada até que o final do arquivo seja encontrado, sempre na borda de subida do relógio - todo o sistema opera na borda de subida do relógio.
+
+A transição do sinal MODE (\lq\lq 10 \rq\rq = geração, \lq\lq 01 \rq\rq = dispersão, outros = \lq\lq OFF \rq\rq) é efetuada após 10 ciclos de relógio, modificando o comportamento da célula autômata geradora. Deste modo, quarto ciclo de relógio depois do segundo sinal de START, esta célula autômata necessariamente passará a ignorar o sinal SOURCE, para se portar com uma célula de dispersão.
+
+\begin{figure}[h]
+	\centering
+	\label{tempo_1.png}
+		\includegraphics[keepaspectratio=true,scale=0.35]{figuras/tempo_1.png}
+	\caption{\label{fig:tempo_1}Diagrama de tempo utilizado no organismo artificial Camphs1D05G1.}
+\end{figure}
+
+O sinal SOURCE foi programado para inserir o valor $20d0000_h$ ($20_d$) durante 5 ciclos de relógio. Em seguida este valor se altera permanentemente para zero, antes do próximo disparo da célula geradora. O ganho foi fixado em $2090000_h$ ($10_d$).
+
+\section{Organismo artificial Camphs1DB9G2}
+
+O organismo artificial Camphs1DB9G2 foi projetado com 187 células autômatas, submetido às mesmas condições de contorno do modelo de referência. Duas células GCA1D foram utilizadas em modo de geração, de maneira semelhante ao modelo de referência. Outras 3 células HCA1D foram utilizadas para representar os obstáculos existentes no modelo de referência. Todos os cuidados em relação aos sinais de controle, incluindo os sinais fornecidos às células geradoras, foram estabelecidos para que os mesmo comportamento pudesse ser estimulado.
+
+\begin{figure}[h]
+	\centering
+	\label{main187.png}
+		\includegraphics[keepaspectratio=true,scale=0.6]{figuras/main187.png}
+	\caption{\label{fig:camphs1D2}Esboço da arquitetura Camphs1DB9G2.}
+\end{figure}
+
+O célula autômata utilizada como receptor foi a de número 20. As células autômatas geradoras foram as de número 44 e 94. As células autômatas 1 e 187 ficaram desligadas durante todo o tempo (podem ser eliminadas deste sistema). 
+
+Foram gerados 2 sinais senoidais em acordo com a frequência de amostragem simulada pelo sistema CA ($f_s=3200Hz$). Os valores discretos em PF 27 bits, para estes sinais, estão apresentados na tabela \ref{tab:amostragem}.
+
+\begin{table}
+\centering
+\caption{\label{tab:amostragem} Amostragem de um sinal senoidal de $400 Hz$ a $3200 Hz$, para operação das células geradoras no organismo artificial Camphs1DB9G2.}
+\begin{tabular}{ |p{6cm}|p{3cm}|p{4cm}|  }
+ \hline
+ Célula autômata (PFU 27bits) & Hexadecimais & Seno 400 Hz (3200 Hz) \\
+ \hline
+ 001111110011010100000100111 & 1F9A827 &0.70710563659668 \\
+ \hline
+ 001111111000000000000000000 & 1FC0000 & 1 \\
+ \hline
+ 001111110011010100000100111 & 1F9A827 & 0.70710563659668 \\
+ \hline
+ 000000000000000000000000000 & 0000000 & 0 \\
+ \hline
+ 101111110011010100000100111 & 5F9A827 & -0.70710563659668 \\
+ \hline
+ 101111111000000000000000000 & 5FC0000& -1 \\
+ \hline
+ 101111110011010100000100111 & 5F9A827 & -0.70710563659668 \\
+ \hline
+ 000000000000000000000000000 & 0000000 & 0 \\
+ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Diagrama de tempo: sinais de controle para Camphs1DB9G2}
+
+Os sinais de controle utilizados na simulação comportamental do organismo artificial Camphs1DB9G2 estão mostrados na figura \ref{fig:tempo_2}, a seguir. Neste caso, são 2 células autômatas geradoras, por isso temos 2 sinais START, 2 sinais MODE e 2 sinais SOURCE, denominados pelo índice das respectivas células geradoras.
+
+Nota-se que os sinais de fonte foram carregados com os valores apresentados na tabela \ref{tab:amostragem}. O tempo de operação da célula geradora 44 corresponde ao dobro do tempo da célula 94. Os sinais MODE foram definidos adequadamente para permitirem o funcionamento das células geradoras.
+
+\clearpage
+\newpage
+
+\begin{figure}[h]
+	\centering
+	\label{tempo_2.png}
+		\includegraphics[keepaspectratio=true,scale=0.28]{figuras/tempo_2.png}
+	\caption{\label{fig:tempo_2}Diagrama de tempo utilizado no organismo artificial Camphs1DB9G2.}
+\end{figure}
+
+\section{Padronização do sistema Camphs1D}
+
+As arquiteturas principais, constituídas nos organismos artificiais Camphs1D05G1 e Camphs1DB9G2, são responsáveis por toda a integração de componentes. A arquitetura principal de Camphs1D05G1 totalizou cerca de 200 linhas de código para apenas 5 componentes. Esta verificação levantou a necessidade de se padronizar o processo de construção de novas arquiteturas, pois a quantidade excessiva de linhas pode inserir dificuldades e riscos de erros em um processo manual de descrição. 
+
+Deste modo, foi gerado um algoritmo procedural, programado no software Octave, dedicado à realização de uma arquitetura padrão para sistemas Camphs1D. A arquitetura principal de Camphs1DB9G2 foi gerada automaticamente a partir deste procedimento, resultando em um código com mais de 4200 linhas. O código gerador para Camphs1D possui cerca de 100 linhas, nas quais temos toda a definição dos sinais e geometrias utilizadas na construção da arquitetura principal. 
+
+O mencionado algoritmo será adaptado para a construção de todas as arquiteturas requeridas para a segunda parte deste trabalho (TCC 2). Através deste processo de padronização, foi possível realizar, automaticamente, as seguintes tarefas:
+
+\begin{description}
+    \begin{itemize}
+        \item definição de todos os sinais utilizados
+	    \item instanciação de todos os componentes (células autômatas). 
+	    \item atribuição de todos os sinais de controle, visando a integração celular.
+	    \item atribuição de sinais de fonte, para o controle do comportamento de uma ou mais células autômatas globais geradoras. 
+	    \item atribuição de sinais receptores, para externalização das saídas de uma ou mais células autômatas globais de dispersão.
+	 \end{itemize}
+\end{description}
+
+\section{Validação das simulações comportamentais}
+
+As simulações comportamentais foram realizadas através de \textit{Testbenches}, desenvolvidos em VHDL. As informações pertencentes à cada fonte inserida no sistema foram alimentadas através de um processo de leitura automática de arquivos TXT, em acordo com o respectivo diagrama de tempo.
+
+Os resultados das simulações foram escritos em arquivos de texto (TXT), a cada borda de subida do relógio. Tais resultados englobam todos os registros dos sinais de estímulo e saídas de valores, em PF 27 bits, da(s) célula(s) receptora(s). Os valores de saída estão, neste estágio, divididos em 2 canais, referentes às ondas transmitidas nos sentidos esquerdo e direito.
+
+Em software, os arquivos de saída são decodificados e processados de maneira a se produzir um único vetor com os quantidades resultantes das ondas passantes na(s) célula(s) receptora(s). Os principais trechos do arquivo utilizado na decodificação das saídas mencionadas podem ser apreciados no capítulo seguinte.
+
+Nas simulações praticadas, os arquivos de saída dos organismos artificiais devem ser re-amostrados através de um sinal de relógio sincronizado de duas formas possíveis: (1) através do sinal READY da(s) célula(s) receptora(s) ou (2) através de um sinal de relógio sincronizado com a resposta do sistema CA. Este procedimento é necessário para se desprezar valores registrados durante a latência do sistema. 
+
+A partir de análises gráficas foi possível validar os resultados, juntamente com o MSE obtido entre as soluções em VHDL e linguagem C. 
+
+\clearpage
+\newpage
+
+\begin{figure}[h]
+	\centering
+	\label{validacao.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/validacao.png}
+	\caption{\label{fig:validacao}Diagrama esquemático representativo da validação de Camphs1DB9G2. Para maior detalhamento dos sinais envolvidos na arquitetura principal consultar figura \ref{fig:mainarch}. }
+\end{figure}

@@ -1,0 +1,80 @@
+\input{fixos/pacotes}
+\input{fixos/comandos}
+\input{fixos/novoscomandos}
+
+\input{editaveis/informacoes}
+\input{fixos/informacoes}
+\input{fixos/setup}
+
+\usepackage{xcolor}
+\usepackage{listings}
+
+\usepackage{xcolor}% Farben
+\usepackage{algorithm}% http://ctan.org/pkg/algorithms
+\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+\usepackage{mdframed}% Hintergrundbox, Rahmen, ...
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+    backgroundcolor=\color{backgroundColour},   
+    commentstyle=\color{mGreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C
+}
+
+\begin{document}
+\frenchspacing 
+\imprimircapa
+\imprimirfolhaderosto*
+
+\input{fixos/fichacatalografica}
+\input{editaveis/errata}
+\input{fixos/folhadeaprovacao}
+\input{editaveis/dedicatoria}
+%\input{editaveis/agradecimentos}
+%\input{editaveis/epigrafe}
+\input{editaveis/resumo}
+\input{editaveis/abstract}
+\input{fixos/listasautomaticas}
+\input{editaveis/abreviaturas}
+%\input{editaveis/simbolos}
+\input{fixos/indiceautomatico}
+
+\textual
+
+\input{editaveis/capitulo_0}
+\input{editaveis/capitulo_1}
+\input{editaveis/capitulo_2}
+
+
+% \input{editaveis/resultados_finais}
+% \input{editaveis/conclusao}
+
+\bookmarksetup{startatroot} 
+
+%\postextual
+
+\bibliography{bibliografia} 
+% \input{editaveis/apendices}
+%\input{editaveis/anexos}
+\printindex
+
+\end{document}
+

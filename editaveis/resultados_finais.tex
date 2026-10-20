@@ -1,0 +1,364 @@
+\chapter[Resultados]{Resultados}
+
+Este capítulo se inicia com os resultados das simulações comportamentais realizadas sobre os organismos artificiais Camphs1D05G1 e Camphs1DB9G2. Outros detalhes do projeto das arquiteturas mencionadas, tais como geradores de código e conversores numéricos, também serão apresentados. Em seguida, serão apresentados os relatório de consumo, bem como os resultados obtidos a partir das implementações realizadas em placa.
+
+\section{Simulações comportamentais}
+
+\subsection{Organismo artificial Camphs1D05G1}
+
+Os resultados desta primeira simulação foram úteis para a validação de todas as funcionalidades do sistema CA desenvolvido. As figuras seguintes trazem imagens obtidas da simulação comportamental realizada no software VIVADO, para os sinais de controle apresentados no capítulo anterior.
+
+\begin{figure}[h]
+	\centering
+	\label{sim1.png}
+		\includegraphics[keepaspectratio=true,scale=0.48]{figuras/sim1.png}
+	\caption{\label{fig:padrao}Simulação comportamental da organismo artificial Camphs1D05G1. Em tela, um visão geral das variáveis envolvidas.}
+\end{figure}
+
+Um sinal impulsivo foi gerado pela célula GCA1D central. Após mudança de valor do sinal MODE, conectado à esta célula, esta célula autômata passou a operar apenas com a dispersão das ondas transmitidas.
+
+É possível observar na Figura \ref{fig:padrao} um padrão de resposta que se repete com o tempo, na Figura dos sinais s\_left\_stim\_* e s\_right\_stim\_*. Estes sinais representam os estímulos de saída de ondas nas células autômatas. Este comportamento é desejado devido às sucessivas reflexões de ondas geradas pelas células HCA1D posicionadas nos extremos do sistema.
+
+Na Figura \ref{fig:china}, a seguir, serão apresentados os primeiros eventos esperados para este sistema CA, em acordo com o modelo de referência (no que tange o fenômeno observado).
+
+\begin{figure}[h]
+	\centering
+	\label{camphs1d1_exp.png}
+		\includegraphics[keepaspectratio=true,scale=0.7]{figuras/camphs1d1_exp.png}
+	\caption{\label{fig:china}Resultados esperados para o sistema Camphs1D05G1, com base nos fenômenos básicos da onda. Cada linha apresentada representa as saídas da equação de d'Alembert, submetida ao sinal de entrada (célula 3), em cada um dos 5 nós da solução discreta. Temos também representadas as duas direções de movimento das ondas acústicas.}
+\end{figure}
+
+O coeficientes internos às células HCA1D foram ajustados para emularem um coeficiente de reflexão  $r=0.5$. O padrão repetido visto na Figura \ref{fig:padrao} fica agora mais fácil de ser compreendido, pois percebemos que as ondas sonoras devem, gradualmente, perder $50\%$ das suas amplitudes a cada reflexão.
+
+\begin{figure}[h]
+	\centering
+	\label{sim2.png}
+		\includegraphics[keepaspectratio=true,scale=0.6]{figuras/sim2.png}
+	\caption{\label{fig:sequencia}Resultado esperado para o sistema Camphs1D05G1, com base nos fenômenos básicos da onda. Em tela, temos os sinais de estímulo gerados.}
+\end{figure}
+
+Na Figura \ref{fig:sequencia} podemos comprovar a sequência de geração de estímulos esperada - é possível verificá-la na Figura \ref{fig:china}. Primeiramente a célula 3 (fonte) gera estímulos nas duas direções, com amplitude igual a 200. Em seguida, a célula 4 gera um estímulo para a sua célula a direita (s\_left\_stim\_4), juntamente com as células 2, que gera um estímulo para a sua vizinha à esquerda (s\_right\_stim\_2). Neste mesmo ciclo, a célula 3 gera novamente seus estímulos bidirecionais, desta vez para o valor 0. Deste modo, a simulação prossegue, atendendo perfeitamente às expectativas para com a solução.
+
+\begin{figure}[h]
+	\centering
+	\label{sim3.png}
+		\includegraphics[keepaspectratio=true,scale=0.68]{figuras/sim3.png}
+	\caption{\label{fig:valores1}Resultado esperado para o sistema Camphs1D05G1, com base nos fenômenos básicos da onda. Em tela, as amplitudes de onda transmitidas pelas células autômatas.}
+\end{figure}
+
+Na Figura \ref{fig:valores1} observamos as amplitudes das ondas transmitidas pelas células autômatas, em acordo com os estímulos gerados pelas suas vizinhas. Os valores em hexadecimais $21a4000_h$, $2164000_h$ e $2124000_h$ representam os decimais $200_d$, $100_d$ e $50_d$, respectivamente.
+
+Para finalizar esta exposição, é possível checar as saídas dos canais receptores posicionados na célula 2, e sequência observada coincide perfeitamente com o padrão esperado. Os resultados podem ser apreciados na Tabela \ref{tab:cinco}, a seguir. 
+
+Cada ciclo do sistema CA, indicado na Tabela \ref{tab:cinco}, corresponde a um intervalo de 4 ciclos de relógio. Os ciclos de 1 a 9 correspondem exatamente com os resultados apresentados na Figura \ref{fig:china}, e foram contabilizados a partir do primeiro sinal de START.
+
+\begin{table}
+\centering
+\caption{\label{tab:cinco} Valores registrados nos canais de saída de Camphs1D05G1.}
+\begin{tabular}{ |p{3cm}|p{3cm}|p{3cm}| }
+ \hline
+ \multicolumn{3}{|c|}{S\_LEFT\_OUT} \\
+ \hline \hline
+Ciclo & Valor Obtido & Valor esperado \\
+ \hline
+ 1 & 0000000_h & 0000000_h \\
+ 2 & 0000000_h & 0000000_h \\
+ 3 & 0000000_h & 0000000_h \\
+ 4 & 2164000_h & 2164000_h \\
+ 5 & 0000000_h & 0000000_h \\
+ 6 & 0000000_h & 0000000_h \\
+ 7 & 0000000_h & 0000000_h \\
+ 8 & 2124000_h & 2124000_h \\
+ 9 & 0000000_h & 0000000_h \\
+ 10 & 0000000_h & 0000000_h \\
+ 11 & 0000000_h & 0000000_h \\
+ \hline
+ \multicolumn{3}{|c|}{S\_RIGHT\_OUT} \\
+ \hline \hline
+Ciclo & Valor Obtido & Valor esperado \\
+ \hline
+ 1 & 0000000_h & 0000000_h \\
+ 2 & 21a4000_h & 21a4000_h \\
+ 3 & 0000000_h & 0000000_h \\
+ 4 & 0000000_h & 0000000_h \\
+ 5 & 0000000_h & 0000000_h \\
+ 6 & 2164000_h & 2164000_h \\
+ 7 & 0000000_h & 0000000_h \\
+ 8 & 0000000_h & 0000000_h \\
+ 9 & 0000000_h & 0000000_h \\
+ 10 & 2124000_h & 2124000_h \\
+ 11 & 0000000_h & 0000000_h \\
+ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Dados de entrada, saída e decodificações realizadas em Camphs1D05G1}
+
+Serão apresentados aqui apenas os conteúdos dos arquivos utilizados para a introdução dos sinais de controle. O procedimento de saída de valores, nos canais receptores, também será discutido.
+
+O organismo artificial Camphs1D05G1 foi projetado para executar a leitura de 3 arquivos de dados: sce\_value.txt, sce\_start.txt e sce\_modes.txt. Os arquivos são lidos nas bordas de subida do relógio - o sinal de RESET foi acionado na primeira borda de subida do relógio para inicializar todos os registradores internos. O conteúdos dos arquivos estão apresentados na Tabela \ref{tab:arquivos1}.
+
+\begin{table}
+\centering
+\caption{\label{tab:arquivos1} Conteúdo dos arquivos de controle utilizados na simulação comportamental do organismo artificial Camphs1D05G1.}
+\begin{tabular}{ |p{3cm}|p{3cm}|p{6cm}| }
+ \hline
+ \multicolumn{3}{|c|}{Linhas dos Arquivos de Controle} \\
+ \hline \hline
+sce_modes.txt & sce_start.txt & sce_value.txt \\
+ \hline
+ 10_b & 0_b & 010000010010000000000000000_b \\
+ 10_b & 0_b & 010000010010000000000000000_b \\
+ 10_b & 1_b & 010000010010000000000000000_b \\
+ 10_b & 0_b & 010000010010000000000000000_b \\
+ 10_b & 0_b & 010000010010000000000000000_b \\
+ 10_b & 0_b & 000000000000000000000000000_b \\
+ 10_b & 1_b &  \\
+ 10_b & 0_h & \\
+ 10_b &     &  \\
+ 01_b &     &  \\
+ \hline
+\end{tabular}
+\end{table}
+
+A cada borda se subida do relógio, o sistema também registra os canais de recepção, em vias separadas, para a esquerda e direita. Por este motivo, os arquivos devem ser decodificados e sincronizados para com a correta frequência de resposta do sistema - a latência do sistema é de 4 ciclos de relógio. O mecanismo de decodificação dos valores de saída está apresentado no fragmento de código a seguir.
+
+\begin{figure}[h]
+	\centering
+	\label{deco_1.png}
+		\includegraphics[keepaspectratio=true,scale=0.6]{figuras/deco_1.png}
+	\caption{\label{fig:deco1}Decodificação dos valores registrados nos receptores de Camphs1D05G1. Fragmento do código desenvolvido no software Octave.}
+\end{figure}
+
+Na Figura \ref{fig:deco1} observamos o bloco de decodificação dos valores registrados nos canais de saída do Camphs1D05G1. Primeiramente, os valores são convertidos para PF 64 bits (linhas 22 e 23) para serem armazenados em vetores (linhas 24 e 25). Camphs1D05G1 também externaliza os sinais de estímulo gerados pela célula receptora, para que este valores sejam utilizados na amostragem dos registros de saída (conversões nas linhas 26 e 27, com armazenagem nas linhas 28 e 29).
+
+\begin{figure}[h]
+	\centering
+	\label{deco_2.png}
+		\includegraphics[keepaspectratio=true,scale=0.6]{figuras/deco_2.png}
+	\caption{\label{fig:rec1}Amostragem dos valores registrados nos receptores de Camphs1D05G1. Fragmento do código desenvolvido no software Octave.}
+\end{figure}
+ 
+ Na Figura \ref{fig:rec1} observamos o processo de amostragem dos valores registrados nos canais receptores de Camphs1D05G1. Nas linhas 32 e 33, os vetores de dados são amostrados pelos sinais de estímulo gerados pela célula receptora. Deste modo, os vetores foram sincronizados com a frequência de saída de dados.
+ 
+ \begin{figure}[h]
+	\centering
+	\label{saida_1.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/saidas_recetora_camphs1D05G1.png}
+	\caption{\label{fig:saida1}Resultado da decodificação dos valores registrados nos canais receptores de Camphs1D05G1. Temos em tela os 12 primeiros instantes de tempo do sistema CA.}
+\end{figure}
+ 
+ Na Figura \ref{fig:saida1} observamos as 12 primeiras saídas da célula autômata receptora de Camphs1D05G1. As curvas representam os canais de saída esquerdo e direito. Vale lembrar que os valores apresentados se referem apenas aos momentos nos quais a célula produziu saídas, ou seja, os valores estão sincronizados com os estímulos gerados pela célula. Verifica-se que os resultados atendem às expectativas teóricas apresentadas na Figura \ref{fig:china}. 
+ 
+\subsection{Organismo artificial Camphs1DB9G2}
+
+Todos os detalhes relacionados à operação dos sinais, bem como respostas do sistema CA Camphs1D já foram explorados na primeira simulação comportamental realizada. Sendo assim, considerando o maior volume de resultados, a validação desta simulação foi realizada através do uso de 2 receptores, \lq\lq A \rq\rq e \lq\lq B \rq\rq, respectivamente posicionados nas células de números 20 e 150 do sistema CA.
+
+ \begin{figure}[h]
+	\centering
+	\label{posrec.png}
+		\includegraphics[keepaspectratio=true,scale=0.6]{figuras/posrec.png}
+	\caption{\label{fig:receiver}Posicionamento dos receptores \lq\lq A \rq\rq e \lq\lq B \rq\rq em Camphs1DB9G2, nas saídas das células 20 e 150.}
+\end{figure}
+
+Os mesmos receptores foram posicionados no modelo de referência, que desta vez está representado pelo sistema CA equivalente validado no capítulo 2. Em cada receptor, os valores de saída, provenientes de cada canal, foram somados de maneira a se obter a quantidade de onda resultante através da célula. 
+
+É possível observar nas Figuras \ref{fig:saida2} e \ref{fig:saida3}, os sinais resultantes obtidos pelos receptores, oriundos das soluções em VHDL e C. inicialmente, podemos verificar que o receptor \lq\lq A \rq\rq percebe a passagem de exatamente 5 ondas, enquanto o receptor \lq\lq B \rq\rq percebe 3 ondas. Estas contagens podem ser verificadas no vídeo realizado para o modelo de referência, cujo link se encontra no capítulo 2. Os resultados, para os 160 ciclos iniciais de trabalho, coincidem satisfatoriamente com o modelo de referência. O MSE obtido para os 2 sinais se encontram na Tabela \ref{tab:mse}.   
+
+\begin{figure}
+	\centering
+	\label{saida_2.png}
+		\includegraphics[keepaspectratio=true,scale=0.45]{figuras/saida_2.png}
+	\caption{\label{fig:saida2}Resultado da decodificação dos valores registrados nos canais do receptor \lq \lq A \rq \rq em Camphs1DB9G2 e modelo de referência.}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\caption{\label{tab:mse} Erro médio quadrático calculado para os sinais receptores de Camphs1DB9G2, em relação a saídas semelhantes coletadas no modelo de referência.}
+\begin{tabular}{ |p{3cm}|p{3cm}| } 
+ \hline
+ Receptor & MSE \\
+ \hline
+ A & $3.45^{-13}$ \\
+ \hline
+ B & $1.53^{-14}$ \\
+ \hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+	\centering
+	\label{saida_3.png}
+		\includegraphics[keepaspectratio=true,scale=0.48]{figuras/saida_3.png}
+	\caption{\label{fig:saida3}Resultado da decodificação dos valores registrados nos canais do receptor \lq \lq B \rq \rq em Camphs1DB9G2 e modelo de referência.}
+\end{figure}
+
+\newpage
+
+\subsection{Dados de entrada, saída e decodificações realizadas em Camphs1DB9G2}
+
+Por abordar duas fontes sonoras, a quantidade de arquivos de leitura é o dobro da quantidade utilizada em Camphs1D05G1. De fato, sempre teremos 3 arquivos de leitura para cada fonte sonora considerada no sistema CA Camphs1D. Os aquivos foram construídos manualmente, com base no diagrama de tempo aplicado, mas podem, alternativamente, ser programados a partir de um conjunto de parâmetros de simulação.
+
+Desta vez, a amostragem do arquivo de saída de Camphs1DB9G2 foi realizada através de um sinal gerado em software, sincronizado com o diagrama de tempo utilizado na simulação. Deste modo, 160 saídas foram coletadas, correspondentes às bordas de subida do relógio $[3,7,11,...,639]$. Os vetores, referentes a cada canal de recepção (direito e esquerdo), foram simplesmente somados para produzir os valores resultantes de onda.
+
+A decodificação dos sinais binários coletados, PF em 27 bits para PF em 64 bits, foi realizada de maneira semelhante à primeira simulação, através do fragmento apresentado na Figura \ref{fig:deco1}.
+
+\subsection{Relatórios de utilização de recursos após sínteses lógicas}
+
+Em primeiro lugar vale dizer que todos os códigos em VHDL foram preparados no VIVADO, visando um kit alvo de desenvolvimento Diligent ARTY Z7 \cite{ArtyZ7}. Todas as sínteses foram realizadas com sucesso.
+
+Como se pode notar na Figura \ref{fig:recursos_11}, para a arquitetura Camphs1D05G1, temos a estimativa de utilização de 903 LUTs, 553 FFs e 9 DSP. O recurso IO (IOB) não importa neste momento pois o mesmo representa o conjunto de elementos utilizados para entrada e saída de dados nas simulações, e a estratégia de IO será significativamente modificada para as implementações físicas.
+
+\begin{figure}[h]
+	\centering
+	\label{recursos_1.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/recursos_1.png}
+	\caption{\label{fig:recursos_11}Consumo estimado de recursos para Camphs1D05G1.}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\label{recursos_2.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/recursos_2.png}
+	\caption{\label{fig:recursos_12}Consumo estimado de recursos para Camphs1DB9G2.}
+\end{figure}
+
+Na Figura \ref{fig:recursos_12} temos o resumo dos recursos de utilização de Camphs1DB9G2, sendo 23531 LUTs e 21928 FFs. A ferramenta não indicou o uso de DSPs, provavelmente pelo fato da estimativa ter superado a quantidade de componentes disponíveis. Neste estágio, o consumo de recursos nos serve apenas como direcionamento para as implementações a serem realizadas, pois não é possível estimar com precisão tais recursos, uma vez que a ferramenta não implementou o sistema em placa. No tópico seguinte, temos relatórios mais completos, e confiáveis, de consumo de recursos, referentes às implementações praticadas em placa, nas etapas finais deste trabalho.
+
+\clearpage
+\newpage
+
+\section{Implementações em Placa}
+
+\subsection{Organismo artificial Camphs1D05G1RAV}
+
+As análises de \textit{timming} foram realizadas de tal modo a identificar os caminhos críticos de \textit{setup} e \textit{hold}, indicando as folgas positivas obtidas, para um relógio empregado de 100MHz. Na figura \ref{fig:time_RAV} temos a visualização do caminho crítico de \textit{setup}, em placa, além dos valores de tempo querido e de chegada. Neste caso, o tempo requerido (\textit{Arrival Time}) foi maior do que o tempo de chegada (\textit{Required Time}), apresentando uma folga de 1.162ns, como desejado. Este caminho crítico está compreendido entre o registrador associado com o sinal de fonte (origem) necessário para a operação da célula autômata \#3 (destino).
+
+\begin{figure}[h]
+	\centering
+	\label{Timing_Camphs1D05G1RAV.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/WNS-1-162-2.png}
+	\caption{\label{fig:time_RAV} Análise de tempo obtida para Camphs1D05G1RAV, para o caminho crítico de \textit{setup}. Observamos na imagem os valores dos parâmetros \textit{Arrival Time} e \textit{Required Time}, bem como a folga positiva encontrada. Também está indicado o caminho percorrido na placa.}
+\end{figure}
+
+Na figura \ref{fig:time_RAV2} temos a visualização do caminho crítico de \textit{setup}, em placa, além dos valores de tempo querido e de chegada. Neste caso, o tempo requerido (\textit{Arrival Time}) foi menor do que o tempo de chegada (\textit{Required Time}), apresentando uma folga de 0.060ns, como desejado. Desta vez, o caminho crítico está compreendido na implementação do IP-core ILA (origem e destino). O relógio empregado se mantem 1m 100MHz.
+
+\begin{figure}[h]
+	\centering
+	\label{Timing_Camphs1D05G1RAV.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/WHS-0-06-2.png}
+	\caption{\label{fig:time_RAV2} Análise de tempo obtida para Camphs1D05G1RAV, para o caminho crítico de \textit{hold}. Observamos na imagem os valores dos parâmetros \textit{Arrival Time} e \textit{Required Time}, bem como a folga positiva encontrada. Também está indicado o caminho percorrido na placa.}
+\end{figure}
+
+Devido ao fato do organismo em foco possuir o mesmo CORE de Camphs1D05G1, o seu modelo de referência é o mesmo apresentado na Figura \ref{fig:china}. Para efeito de comparação, foi então realizada uma simulação comportamental equivalente, e os resultados se encontram na Figura \ref{fig:sim_RAV}.
+
+\begin{figure}[h]
+	\centering
+	\label{Sim_RAV.png}
+		\includegraphics[keepaspectratio=true,scale=0.7]{figuras/sim_1.png}
+	\caption{\label{fig:sim_RAV} Simulação comportamental de Camphs1D05G1RAV.}
+\end{figure}
+
+Na Figura \ref{fig:sim_RAV} é possível verificar que o \textit{throughtput} do sistema é de 3 ciclos de relógio. Este fato é devido à latência da memória ROM. Os resultados obtidos pelas células receptoras de Camphs1D05G1RAV, nas mesmas posições arbitradas em Camphs1D05G1, coincidem com aqueles apresentados na Figura \ref{fig:saida1}. Os mesmos podem ser visualizados na Figura \ref{fig:saida-1-rav}. A seguir, na Tabela \ref{fig:power}, temos relatório de consumo de recursos para o organismo em questão.
+
+\begin{figure}[h]
+	\centering
+	\label{Sim_RAV.png}
+		\includegraphics[keepaspectratio=true,scale=0.65]{figuras/saida-1.png}
+	\caption{\label{fig:saida-1-rav} Resultados coletados pelo ILA-core de Camphs1D05G1RAV, para a porta esquerda das células autômatas receptoras. À esquerda temos os resultados obtidos na porta esquerda, enquanto à direita temos os resultados obtidos na porta direita.}
+\end{figure}
+
+\subsection{Organismo artificial Camphs1D05G1AL}
+
+A análise estática de \textit{timming}, para o organismo artificial Camphs1D05G1AL, está apresentada na Figura \ref{fig:timeAL}. Na ferramenta Vivado 2018.3 Webpack, é possível destacar os caminhos críticos de \textit{setup} e \textit{hold}. Para \textit{setup}, o parâmetro \textit{Required Time} é maior do que o parâmetro \textit{Arrival Time}, com folga de 2.775ns, como desejado. Neste caso, a origem está no PS, enquanto o destino está no IP-core Camphs1D05G1AL. Para \textit{hold}, o parâmetro \textit{Arrival Time} deve maior do que o parâmetro \textit{Required Time}, fato que ocorre com folga positiva de 0.043ns. Neste segundo caso, a origem e o destino está na implementação do \textit{AXI interconnect}. 
+
+\begin{figure}[h]
+	\centering
+	\label{Timing_Camphs1D05G1AL.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/setup-al.png}
+	\caption{\label{fig:timeAL}Análise de tempo obtida para Camphs1D05G1AL. Em tela, temos os caminhos críticos de \textit{setup} e \textit{hold} (origens e destinos), indicando folgas positivas.}
+\end{figure}
+
+A seguir, na Figura \ref{fig:SDK_Camphs1D05G1AL}, estão apresentados os resultados obtidos a partir da implementação do organismo artificial Camphs1D05G1AL. No software SDK, foi possível comparar a solução de software e hardware obtidas para o mencionado organismo. As soluções coincidem, conforme apresentado no modelo de referência apresentado na Tabela \ref{tab:refaxilite}. O relatório de consumo de recursos, para o organismo em questão, está apresentado na Tabela \ref{fig:power}, a seguir.
+
+\begin{figure}[h]
+	\centering
+	\label{SDK_Camphs1D05G1AL.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/SDK_Camphs1D05G1AL.png}
+	\caption{\label{fig:SDK_Camphs1D05G1AL} Resultados obtidos no software SDK para Camphs1D05G1AL. Em tela estão os resultados da Co-simulação praticada.}
+\end{figure}
+
+\subsection{Organismo artificial Camphs1D05G1AS}
+
+A análise estática de \textit{timming}, para o organismo artificial Camphs1D05G1AS, está apresentada na Figura \ref{fig:timeAS}, a seguir. Para \textit{setup}, temos uma folga positiva de 0.905ns, enquanto para \textit{hold} temos uma folga positiva de 0.021ns. O caminho crítico de \textit{setup} possui sua origem e destino na implementação do IP-core Camphs1D05G1AS, enquanto o caminho crítico de \textit{hold} possui sua origem e destino na implementação do \textit{IP AXI Direct Memory Access} (\textit{AXI-DMA}). O sinal de relógio de 100 MHz foi mantido para esta implementação.
+
+\begin{figure}[h]
+	\centering
+	\label{Timing_Camphs1D05G1AL.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/setup-as.png}
+	\caption{\label{fig:timeAS}Análise de tempo obtida para Camphs1D05G1AS. Em tela, temos os caminhos críticos de \textit{setup} e \textit{hold} (origens e destinos), indicando folgas positivas.}
+\end{figure}
+
+Na Figura \ref{fig:SDK_Camphs1D05G1AS}, a seguir, estão apresentados os resultados obtidos a partir da implementação do organismo artificial Camphs1D05G1AS. No software SDK, foi possível comparar a solução de software e hardware obtidas para o mencionado organismo. Note que os resultados contemplam o estado final das células autônomas e as saídas no receptor. As soluções coincidem, conforme apresentado no modelo de referência apresentado na Tabela \ref{tab:refaxistream}. A estratégia utilizada foi a Co-simulação hardware/software, oferecida pela ferramenta. deste modo, a solução é apresentada nas duas formas disponíveis, para que a implementação, em hardware, seja avaliada. O relatório de consumo de recursos para o organismo artificial Camphs1D05G1AS, bem como para os demais implementados, está apresentado na Tabela \ref{fig:power}, a seguir.
+
+\begin{figure}[h]
+	\centering
+	\label{SDK_Camphs1D05G1AL.png}
+		\includegraphics[keepaspectratio=true,scale=1]{figuras/SDK_Camphs1D05G1AS.png}
+	\caption{\label{fig:SDK_Camphs1D05G1AS} Resultados obtidos no software SDK para Camphs1D05G1AS. Em tela estão os resultados da Co-simulação praticada.}
+\end{figure}
+
+\subsection{Relatório de utilização de recursos após as implementações}
+
+Na Figura \ref{fig:recursos_ALL} temos os recursos necessários para a implementação dos organismos artificiais aqui construídos. Nota-se, no organismo artificial Camphs1D05G1RAV, que temos um consumo de quase {50\%} dos recursos de I/O, aproximadamente {20\%} dos recursos de BRAM, além de {4\%} dos DSP, {4\%} dos FF, {4\%} de LUT e {1\%} de LUTRAM. Ainda que boa parte dos recursos esteja considerada para os IP-cores ILA, temos uma utilização considerável, fato que indica a necessidade de uma estratégia que integre os benefícios da aceleração em hardware (FPGA) com recursos de memória (software), visando uma maior escalabilidade da solução.
+
+A Figura \ref{fig:recursos_ALL} também contempla os recursos necessários para o organismo artificial Camphs1D05G1AL. Vale lembrar que, desta vez, temos apenas o IP-core Camphs1D05G1 integrado com um barramento de dados do tipo \textit{AXI4-Lite}, pois o PS está implementado em silício e não consome os recurso reconfiguráveis do kit. Vemos que foram consumidos {5\%} de DSP, {3\%} de LUT, {3\%} de BUFG, {2\%} de FF e {1\%} de LUTRAM. Ou seja, um consumo bem menor e mais próximo de uma aplicação típica do sistema CA Camphs1D.
+
+Agora vamos ao consumo de recursos obtido da implementação do organismo artificial Camphs1D05G1AS, que novamente podem ser observados na Figura \ref{fig:recursos_ALL}. Neste caso, temos o IP-core Camphs1D05G1 integrado com aos barramentos de dados \textit{AXI4-Lite} e \textit{AXI4-Stream}, para promover o \textit{streamming} de dados do PL para o PS. Vemos que foram consumidos {5\%} de DSP, {13\%} de LUT, {3\%} de BUFG , {8\%} de FF e {4\%} de LUTRAM. Também tivemos um consumo moderado, porém ligeiramente maior do que no caso anterior apresentado - o barramento \textit{AXI4-Lite} consumiu uma maior quantidade de recursos do kit.
+
+\begin{figure}[h]
+\centering
+	\includegraphics[keepaspectratio=true,scale=1]{figuras/Tabela_recursos_ALL.png}
+	\caption{\label{fig:recursos_ALL} Tabela de consumo de recursos para as implementações físicas praticadas.}
+\end{figure}
+
+Na Figura \ref{fig:layoutRAV} temos os resultados da implementação de Camphs1D05G1RAV, indicando a porção da placa ocupada pelos componentes no FPGA. Vemos que a ocupação do ILA-core é significativa, chegando a ter a mesma proporção do IP-core Camphs1D05G1. Na Figura \ref{fig:layoutAL}, temos os resultados obtidos para Camphs1D05G1AL. Notamos que a maior parte está destinada à implementação do IP-core Camphs1D05G1, ou seja, trata-se de um projeto mais enxuto. Já na Figura \ref{fig:layoutAS}, vemos uma grande parte dos recursos serem destinada à implementação do barramento \textit{AXI4-Stream} e ao \textit{AXI-DMA} (recurso que viabiliza a comunicação direta entre a memória e o IP-core Camphs1D05G1). Os demais recursos se assemelham com o caso anterior, até mesmo porque temos aqui os mesmos recursos, e funcionalidades, do \textit{AXI4-Lite} implementados.
+
+Todos os relatórios de consumo de recursos podem ser apreciados na Tabela \ref{fig:power}, acima. Nota-se que o consumo energético de Camphs1D05G1RAV é prioritariamente estático, o que significa que o kit gasta mais energia para manter a implementação dos recursos utilizados do que, propriamente, para manter o tráfego dos sinais envolvidos. Para os organismos artificiais Camphs1D05G1AL e Camphs1D05G1AS, é possível verificar que o consumo é prioritariamente dinâmico, ou seja, a maior parte de energia relacionada com o tráfego dos sinais envolvidos. O custo energético é maior do que o caso anterior, apresentado para Camphs1D05G1RAV, pelo fato de termos o PS envolvido na solução.
+
+\begin{table}[]
+\caption{\label{fig:power}Tabela de consumo de recursos para as implementações dos organismos (A) Camphs1D05G1RAV, (B) Camphs1D05G1AL e (C) Camphs1D05G1AS.}
+\centering
+\begin{tabular}{|r|c|c|c|}
+\hline
+\multicolumn{1}{|l|}{Implementações -\textgreater{}} & A       & B       & C             \\ \hline
+\multicolumn{1}{|l|}{Consumo dinâmico}               & 0.030 W & 1.274 W & 1.313 W       \\ \hline
+Relógios                                             & 50\%    & 1 \%    & 2 \%          \\ \hline
+BRAM                                                 & 21\%    & -       & \textless 1\% \\ \hline
+Sinais                                               & 14\%    & 1\%     & 1 \%          \\ \hline
+Outros                                               & 12\%    & 2 \%    & \textless 1\% \\ \hline
+PS                                                   & 0\%     & 96\%    & 94 \%         \\ \hline
+\multicolumn{1}{|l|}{Consumo estático}               & 0.106 W & 0.134 W & 0.136 W       \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{figure}
+	\centering
+	\label{Sistematico_Camphs1D05G1RAV.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/Sistematico_Camphs1D05G1RAV.png}
+	\caption{\label{fig:layoutRAV}\textit{Layout} obtido da implementação de Camphs1D05G1RAV.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\label{Sistematico_Camphs1D05G1AL.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/Sistematico_Camphs1D05G1AL.png}
+	\caption{\label{fig:layoutAS}\textit{Layout} obtido da implementação de Camphs1D05G1AL.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\label{Sistematico_Camphs1D05G1AS.png}
+		\includegraphics[keepaspectratio=true,scale=0.8]{figuras/Sistematico_Camphs1D05G1AS.png}
+	\caption{\label{fig:layoutAL}\textit{Layout} obtido da implementação de Camphs1D05G1AS.}
+\end{figure}
